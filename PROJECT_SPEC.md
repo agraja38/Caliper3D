@@ -21,3 +21,6 @@ No accounts, cloud backend, analytics, telemetry, subscriptions or web wrappers.
 
 ## Workflow
 Use development for routine changes; logical commits, no force pushes/history rewriting. Keep IMPLEMENTATION_STATUS.md and NEXT_STEPS.md honest and current. Build both targets and test shared packages. Real capture is the next milestone, not a claim of this foundation.
+
+## Foundation implementation decisions
+The checked-in Xcode project/workspace is generated from project.yml using XcodeGen; building does not require the generator. Demo schemes pass --demo-mode. App package dependencies are local SwiftPM packages. RealityKit ARView is wrapped for macOS 14 compatibility because RealityView starts at macOS 15. Mac packages use UUID filenames under Application Support with separate demo storage. MIT license. See docs/Architecture.md for storage and concurrency constraints; see docs/Environment.md for the verified SDK and Simulator workaround.
