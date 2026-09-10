@@ -53,6 +53,51 @@ For physical installation, configure your own signing team in Xcode. No team ID 
 
 This runs package tests, builds the mesh contract module, and compiles both applications without signing. The checked-in Xcode project is ready to build. If changing `project.yml`, install XcodeGen and run `xcodegen generate`.
 
+## Set up Caliper3D Capture on iPhone
+
+The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **In v1.0.0, the iPhone app provides a demo workflow only.** Live camera/LiDAR capture and Mac pairing are not implemented yet.
+
+### Get the source
+
+Install Xcode on your Mac, open it once to finish setup, and install its iOS platform components if prompted. Use an Xcode version that supports your iPhone’s installed iOS version; this project was built with Xcode 26.6. The companion targets iOS 17 or later.
+
+```sh
+git clone https://github.com/agraja38/Caliper3D.git
+cd Caliper3D
+git switch main
+open Caliper3D.xcworkspace
+```
+
+If you already cloned the repository, open that workspace instead. XcodeGen is not required to build the checked-in project.
+
+### Try it without an iPhone
+
+1. In Xcode’s toolbar, choose the **Caliper3DCapture Demo** scheme.
+2. Select an **iPhone Simulator** as the run destination. Download an iOS Simulator runtime in **Xcode → Settings → Components** if none is available.
+3. Choose **Product → Run** or press **⌘R**. Simulator runs do not require an Apple signing team.
+4. Complete the three onboarding pages, tap **Get Started**, then **New Scan**.
+5. Wait for the simulated capture, review it, then tap **Simulate Transfer to Mac**. Completion explicitly confirms that no data was sent.
+
+Demo captures are temporary metadata, reset when the app closes, and do not use a camera or LiDAR. If Xcode reports a missing iOS platform despite an installed SDK, see the tested workaround in [Environment.md](docs/Environment.md#simulator-destination-issue-and-workaround).
+
+### Install on your physical iPhone
+
+1. Connect your unlocked iPhone to the Mac with a USB cable. Accept **Trust This Computer** on the iPhone if prompted, and allow Xcode to finish preparing the device.
+2. In **Xcode → Settings → Apple Accounts** (called **Accounts** in some versions), sign in with your own Apple Account. A Personal Team can be used for personal device testing.
+3. Select the blue **Caliper3D** project in the navigator, then **TARGETS → Caliper3DCapture → Signing & Capabilities**. Enable **Automatically manage signing** and select your own **Team**.
+4. If Xcode reports that the bundle identifier is unavailable, change the iPhone target’s identifier to a unique value such as `com.yourname.Caliper3DCapture`. Keep personal signing changes local.
+5. Enable **Settings → Privacy & Security → Developer Mode** on the iPhone when required. Restart and confirm when prompted. If the setting is absent, connect the phone to Xcode first. See [Apple’s Developer Mode instructions](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
+6. Choose **Caliper3DCapture Demo** and select your **physical iPhone** as the destination. Press **⌘R** to build, install and launch.
+7. Complete onboarding and try **New Scan → review → Simulate Transfer to Mac**.
+
+For device preparation and signing details, see [Apple’s device-running guide](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices). Personal development provisioning can expire; if the app stops launching, reconnect and run it from Xcode again.
+
+The Demo scheme supplies `--demo-mode` when **Xcode launches the app**. Opening it later from the iPhone Home Screen does not supply that argument; launch through the Demo scheme to use the simulated flow. The ordinary **Caliper3DCapture** scheme explains that live capture is pending.
+
+### Explore the Mac side
+
+Open Caliper3D on the Mac and choose **Try Demo Project**. There is no pairing code or network setup in v1.0.0, and the two apps do not exchange captures yet. Physical installation instructions above have not been device-tested in this project; the Simulator demo flow has been verified.
+
 ## Architecture
 
 - `Apps/Caliper3D`: Mac application.
