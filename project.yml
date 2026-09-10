@@ -1,0 +1,102 @@
+name: Caliper3D
+options:
+  bundleIdPrefix: org.caliper3d
+  deploymentTarget:
+    macOS: "14.0"
+    iOS: "17.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+packages:
+  Caliper3DCore:
+    path: Packages/Caliper3DCore
+  Caliper3DTransfer:
+    path: Packages/Caliper3DTransfer
+  Caliper3DMesh:
+    path: Packages/Caliper3DMesh
+  Caliper3DInstaller:
+    path: Packages/Caliper3DInstaller
+targets:
+  Caliper3D:
+    type: application
+    platform: macOS
+    sources: [Apps/Caliper3D]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.caliper3d.Caliper3D
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: Caliper3D
+        ENABLE_APP_SANDBOX: YES
+        CODE_SIGN_ENTITLEMENTS: Apps/Caliper3D/Caliper3D.entitlements
+    info:
+      path: Apps/Caliper3D/Info.plist
+      properties:
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Caliper3D Project
+            CFBundleTypeRole: Editor
+            LSItemContentTypes: [org.caliper3d.project]
+            LSTypeIsPackage: true
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: org.caliper3d.project
+            UTTypeDescription: Caliper3D Project
+            UTTypeConformsTo: [com.apple.package]
+            UTTypeTagSpecification:
+              public.filename-extension: [caliper3d]
+    dependencies:
+      - package: Caliper3DCore
+      - package: Caliper3DTransfer
+      - package: Caliper3DMesh
+      - package: Caliper3DInstaller
+  Caliper3DCapture:
+    type: application
+    platform: iOS
+    sources: [Apps/Caliper3DCapture]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.caliper3d.Caliper3DCapture
+        TARGETED_DEVICE_FAMILY: "1"
+        GENERATE_INFOPLIST_FILE: YES
+    info:
+      path: Apps/Caliper3DCapture/Info.plist
+      properties:
+        CFBundleDisplayName: Caliper3D Capture
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSCameraUsageDescription: Caliper3D Capture uses the camera to scan objects you choose.
+        NSLocalNetworkUsageDescription: Caliper3D Capture connects to your Mac to transfer scans locally.
+        NSBonjourServices: [_caliper3d._tcp]
+    dependencies:
+      - package: Caliper3DCore
+      - package: Caliper3DTransfer
+schemes:
+  Caliper3D:
+    build:
+      targets:
+        Caliper3D: all
+    run:
+      config: Debug
+  Caliper3D Demo:
+    build:
+      targets:
+        Caliper3D: all
+    run:
+      config: Debug
+      commandLineArguments:
+        --demo-mode: true
+  Caliper3DCapture:
+    build:
+      targets:
+        Caliper3DCapture: all
+    run:
+      config: Debug
+  Caliper3DCapture Demo:
+    build:
+      targets:
+        Caliper3DCapture: all
+    run:
+      config: Debug
+      commandLineArguments:
+        --demo-mode: true

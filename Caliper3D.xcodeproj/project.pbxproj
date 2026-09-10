@@ -1,0 +1,525 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		08164844F1F17EF4A06A1F17 /* Caliper3DCore in Frameworks */ = {isa = PBXBuildFile; productRef = 16CE74BFB0A7AC57FB3B9855 /* Caliper3DCore */; };
+		390BA26E040EA18509B9EEE7 /* Caliper3DCore in Frameworks */ = {isa = PBXBuildFile; productRef = 624F7E73A56225EC324617DA /* Caliper3DCore */; };
+		4483D3FE430718798A5A53EE /* DemoViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4FC4DEED284722E8BDFC51 /* DemoViewport.swift */; };
+		4A446310CA831DE9E58E8307 /* Caliper3DCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */; };
+		6E62F324A89C8592A676CF30 /* Caliper3DMesh in Frameworks */ = {isa = PBXBuildFile; productRef = 1327D93CD31FFC1C14B41DBF /* Caliper3DMesh */; };
+		76D91330ED7D6BEEC5363A42 /* CaptureHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */; };
+		92F631A4234DF5B700DD2CD9 /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95E19E29A40B76569F0338F /* WorkspaceView.swift */; };
+		984800B761B05D4CD4E27B13 /* Caliper3DTransfer in Frameworks */ = {isa = PBXBuildFile; productRef = 794FDC89B22AFF88DDC43BD0 /* Caliper3DTransfer */; };
+		9D996AA29C2F7A03D2003411 /* Caliper3DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6D6E2D00D2C138D42B570D /* Caliper3DApp.swift */; };
+		A610E6849E958EB867B52BC8 /* ProjectEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B43C2161A7EA1FA9B8C9E0F /* ProjectEditor.swift */; };
+		AC88D9D53FDD464283695635 /* Caliper3DTransfer in Frameworks */ = {isa = PBXBuildFile; productRef = 36E34358CAB4FBC2E9886C08 /* Caliper3DTransfer */; };
+		B18E7B8658EDB2B0C295AEA1 /* CaptureFlowModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4994A94F57CCD0598358381 /* CaptureFlowModel.swift */; };
+		B529ACCCD2E11AA029657578 /* DevicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8226EC81E45243D4F4B74954 /* DevicesView.swift */; };
+		CBE82CDB319A7E4BB0B42800 /* LibraryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14DB88A30D1EB127481F9BEF /* LibraryModel.swift */; };
+		D0B8FE8D2FDC06F723B210F4 /* Caliper3DInstaller in Frameworks */ = {isa = PBXBuildFile; productRef = 4EC72F3648E7280F84AC5FDE /* Caliper3DInstaller */; };
+		D284EDDFC6EA6C6B9CF4156B /* ProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD8DCE77187A9763555F1D16 /* ProcessingView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0C0B5E8EDB260A0C0AE5597D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		14DB88A30D1EB127481F9BEF /* LibraryModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryModel.swift; sourceTree = "<group>"; };
+		1B4FC4DEED284722E8BDFC51 /* DemoViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoViewport.swift; sourceTree = "<group>"; };
+		2AB0E1EC74B5AC170DEA1E2A /* Caliper3DMesh */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DMesh; path = Packages/Caliper3DMesh; sourceTree = SOURCE_ROOT; };
+		2F2C3F4DB82C9BEF6C75581B /* Caliper3DCapture.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Caliper3DCapture.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4B43C2161A7EA1FA9B8C9E0F /* ProjectEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectEditor.swift; sourceTree = "<group>"; };
+		4E6D6E2D00D2C138D42B570D /* Caliper3DApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Caliper3DApp.swift; sourceTree = "<group>"; };
+		6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Caliper3DCaptureApp.swift; sourceTree = "<group>"; };
+		791B9D5843F13E1538F74038 /* Caliper3DInstaller */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DInstaller; path = Packages/Caliper3DInstaller; sourceTree = SOURCE_ROOT; };
+		8226EC81E45243D4F4B74954 /* DevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicesView.swift; sourceTree = "<group>"; };
+		A03EF0B85BA66E4D8A9AB499 /* Caliper3D.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Caliper3D.entitlements; sourceTree = "<group>"; };
+		A95E19E29A40B76569F0338F /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
+		B0F9D16F72BD140B17A87A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C2DA574A2AC91FDEBF9971FA /* Caliper3D.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Caliper3D.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C3FFB927F9146046331B016B /* Caliper3DTransfer */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DTransfer; path = Packages/Caliper3DTransfer; sourceTree = SOURCE_ROOT; };
+		C4994A94F57CCD0598358381 /* CaptureFlowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFlowModel.swift; sourceTree = "<group>"; };
+		C6980FCF4CCDA38E59DF4B6D /* Caliper3DCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DCore; path = Packages/Caliper3DCore; sourceTree = SOURCE_ROOT; };
+		DD8DCE77187A9763555F1D16 /* ProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingView.swift; sourceTree = "<group>"; };
+		EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureHomeView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0014F16A21B3E0976AFC3071 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				390BA26E040EA18509B9EEE7 /* Caliper3DCore in Frameworks */,
+				AC88D9D53FDD464283695635 /* Caliper3DTransfer in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		502BC1AEFAF152CD5F71FB24 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				08164844F1F17EF4A06A1F17 /* Caliper3DCore in Frameworks */,
+				984800B761B05D4CD4E27B13 /* Caliper3DTransfer in Frameworks */,
+				6E62F324A89C8592A676CF30 /* Caliper3DMesh in Frameworks */,
+				D0B8FE8D2FDC06F723B210F4 /* Caliper3DInstaller in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		04966156F5078AD6ECE94F2E /* Caliper3DCapture */ = {
+			isa = PBXGroup;
+			children = (
+				6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */,
+				C4994A94F57CCD0598358381 /* CaptureFlowModel.swift */,
+				EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */,
+				0C0B5E8EDB260A0C0AE5597D /* Info.plist */,
+			);
+			name = Caliper3DCapture;
+			path = Apps/Caliper3DCapture;
+			sourceTree = "<group>";
+		};
+		6BABF608A1C68359F488659C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C2DA574A2AC91FDEBF9971FA /* Caliper3D.app */,
+				2F2C3F4DB82C9BEF6C75581B /* Caliper3DCapture.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9F7F9621AD87644243B71BC3 /* Caliper3D */ = {
+			isa = PBXGroup;
+			children = (
+				A03EF0B85BA66E4D8A9AB499 /* Caliper3D.entitlements */,
+				4E6D6E2D00D2C138D42B570D /* Caliper3DApp.swift */,
+				1B4FC4DEED284722E8BDFC51 /* DemoViewport.swift */,
+				8226EC81E45243D4F4B74954 /* DevicesView.swift */,
+				B0F9D16F72BD140B17A87A45 /* Info.plist */,
+				14DB88A30D1EB127481F9BEF /* LibraryModel.swift */,
+				DD8DCE77187A9763555F1D16 /* ProcessingView.swift */,
+				4B43C2161A7EA1FA9B8C9E0F /* ProjectEditor.swift */,
+				A95E19E29A40B76569F0338F /* WorkspaceView.swift */,
+			);
+			name = Caliper3D;
+			path = Apps/Caliper3D;
+			sourceTree = "<group>";
+		};
+		C1F275D3AD9CEEED9E7D80A9 = {
+			isa = PBXGroup;
+			children = (
+				9F7F9621AD87644243B71BC3 /* Caliper3D */,
+				04966156F5078AD6ECE94F2E /* Caliper3DCapture */,
+				C92C99D10F76768D8A4BCC89 /* Packages */,
+				6BABF608A1C68359F488659C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C92C99D10F76768D8A4BCC89 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				C6980FCF4CCDA38E59DF4B6D /* Caliper3DCore */,
+				791B9D5843F13E1538F74038 /* Caliper3DInstaller */,
+				2AB0E1EC74B5AC170DEA1E2A /* Caliper3DMesh */,
+				C3FFB927F9146046331B016B /* Caliper3DTransfer */,
+			);
+			path = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		72F9531185BE4FDB658357A3 /* Caliper3DCapture */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D45684E1ED980C1602D64BFB /* Build configuration list for PBXNativeTarget "Caliper3DCapture" */;
+			buildPhases = (
+				A3E519D1F61C72D626A5CAEB /* Sources */,
+				0014F16A21B3E0976AFC3071 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Caliper3DCapture;
+			packageProductDependencies = (
+				624F7E73A56225EC324617DA /* Caliper3DCore */,
+				36E34358CAB4FBC2E9886C08 /* Caliper3DTransfer */,
+			);
+			productName = Caliper3DCapture;
+			productReference = 2F2C3F4DB82C9BEF6C75581B /* Caliper3DCapture.app */;
+			productType = "com.apple.product-type.application";
+		};
+		B2515550FF820AB0DF868DDA /* Caliper3D */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 557455243D0578CCCD64413D /* Build configuration list for PBXNativeTarget "Caliper3D" */;
+			buildPhases = (
+				CEAF14BFF0E583A0F8FFE9B4 /* Sources */,
+				502BC1AEFAF152CD5F71FB24 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Caliper3D;
+			packageProductDependencies = (
+				16CE74BFB0A7AC57FB3B9855 /* Caliper3DCore */,
+				794FDC89B22AFF88DDC43BD0 /* Caliper3DTransfer */,
+				1327D93CD31FFC1C14B41DBF /* Caliper3DMesh */,
+				4EC72F3648E7280F84AC5FDE /* Caliper3DInstaller */,
+			);
+			productName = Caliper3D;
+			productReference = C2DA574A2AC91FDEBF9971FA /* Caliper3D.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CC8732B45A612D65F342887E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					72F9531185BE4FDB658357A3 = {
+						ProvisioningStyle = Automatic;
+					};
+					B2515550FF820AB0DF868DDA = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 816310760FE9E6E5EBC3E38F /* Build configuration list for PBXProject "Caliper3D" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = C1F275D3AD9CEEED9E7D80A9;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				37D36F153FF095CA3379FADA /* XCLocalSwiftPackageReference "Packages/Caliper3DCore" */,
+				258D1AB93512780EAA7E0FAB /* XCLocalSwiftPackageReference "Packages/Caliper3DInstaller" */,
+				EA75142A688553C66A670B07 /* XCLocalSwiftPackageReference "Packages/Caliper3DMesh" */,
+				87A1A275DC175B0A0C47D9FA /* XCLocalSwiftPackageReference "Packages/Caliper3DTransfer" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 6BABF608A1C68359F488659C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B2515550FF820AB0DF868DDA /* Caliper3D */,
+				72F9531185BE4FDB658357A3 /* Caliper3DCapture */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A3E519D1F61C72D626A5CAEB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4A446310CA831DE9E58E8307 /* Caliper3DCaptureApp.swift in Sources */,
+				B18E7B8658EDB2B0C295AEA1 /* CaptureFlowModel.swift in Sources */,
+				76D91330ED7D6BEEC5363A42 /* CaptureHomeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CEAF14BFF0E583A0F8FFE9B4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9D996AA29C2F7A03D2003411 /* Caliper3DApp.swift in Sources */,
+				4483D3FE430718798A5A53EE /* DemoViewport.swift in Sources */,
+				B529ACCCD2E11AA029657578 /* DevicesView.swift in Sources */,
+				CBE82CDB319A7E4BB0B42800 /* LibraryModel.swift in Sources */,
+				D284EDDFC6EA6C6B9CF4156B /* ProcessingView.swift in Sources */,
+				A610E6849E958EB867B52BC8 /* ProjectEditor.swift in Sources */,
+				92F631A4234DF5B700DD2CD9 /* WorkspaceView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		04BC6AE22757BCD055A08731 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apps/Caliper3D/Caliper3D.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Apps/Caliper3D/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Caliper3D;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.caliper3d.Caliper3D;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		84E5F65877846D9AF67B4172 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		85F8C72CC900D920EBB11B0F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Apps/Caliper3DCapture/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.caliper3d.Caliper3DCapture;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		BA954FF012700BD8528E614C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Apps/Caliper3D/Caliper3D.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Apps/Caliper3D/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Caliper3D;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.caliper3d.Caliper3D;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BE220103100B7416ED07D885 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Apps/Caliper3DCapture/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.caliper3d.Caliper3DCapture;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		E56EBA3C04A560B4CB4E031D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		557455243D0578CCCD64413D /* Build configuration list for PBXNativeTarget "Caliper3D" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				04BC6AE22757BCD055A08731 /* Debug */,
+				BA954FF012700BD8528E614C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		816310760FE9E6E5EBC3E38F /* Build configuration list for PBXProject "Caliper3D" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				84E5F65877846D9AF67B4172 /* Debug */,
+				E56EBA3C04A560B4CB4E031D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		D45684E1ED980C1602D64BFB /* Build configuration list for PBXNativeTarget "Caliper3DCapture" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE220103100B7416ED07D885 /* Debug */,
+				85F8C72CC900D920EBB11B0F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		258D1AB93512780EAA7E0FAB /* XCLocalSwiftPackageReference "Packages/Caliper3DInstaller" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Caliper3DInstaller;
+		};
+		37D36F153FF095CA3379FADA /* XCLocalSwiftPackageReference "Packages/Caliper3DCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Caliper3DCore;
+		};
+		87A1A275DC175B0A0C47D9FA /* XCLocalSwiftPackageReference "Packages/Caliper3DTransfer" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Caliper3DTransfer;
+		};
+		EA75142A688553C66A670B07 /* XCLocalSwiftPackageReference "Packages/Caliper3DMesh" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/Caliper3DMesh;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1327D93CD31FFC1C14B41DBF /* Caliper3DMesh */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DMesh;
+		};
+		16CE74BFB0A7AC57FB3B9855 /* Caliper3DCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DCore;
+		};
+		36E34358CAB4FBC2E9886C08 /* Caliper3DTransfer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DTransfer;
+		};
+		4EC72F3648E7280F84AC5FDE /* Caliper3DInstaller */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DInstaller;
+		};
+		624F7E73A56225EC324617DA /* Caliper3DCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DCore;
+		};
+		794FDC89B22AFF88DDC43BD0 /* Caliper3DTransfer */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = Caliper3DTransfer;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = CC8732B45A612D65F342887E /* Project object */;
+}
