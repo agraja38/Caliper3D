@@ -94,12 +94,3 @@ public struct ScanProject: Identifiable, Equatable, Sendable {
     public var id: UUID { manifest.id }
     public init(manifest: ScanManifest, url: URL) { self.manifest = manifest; self.url = url }
 }
-public struct CaptureRecord: Identifiable, Codable, Equatable, Sendable {
-    public var id: UUID
-    public var name: String
-    public var imageCount: Int
-    public var isDemo: Bool
-    public init(id: UUID = UUID(), name: String, imageCount: Int, isDemo: Bool) {
-        self.id = id; self.name = name; self.imageCount = imageCount; self.isDemo = isDemo
-    }
-}
