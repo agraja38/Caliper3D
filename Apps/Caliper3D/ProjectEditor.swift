@@ -14,6 +14,7 @@ struct ProjectEditor: View {
         VStack(spacing: 0) {
             if project.manifest.captureMethod == .demo {
                 DemoViewport(rotation: rotation, scale: scale)
+                    .accessibilityLabel("Synthetic calibration block, 80 by 60 by 40 millimeters")
                 .overlay(alignment: .bottom) {
                     HStack {
                         Label("Rotate", systemImage: "rotate.3d").font(.caption)
@@ -23,7 +24,6 @@ struct ProjectEditor: View {
                         Button("Reset") { rotation = 25; scale = 1 }.help("Reset the demo view")
                     }.padding(12).background(.regularMaterial).padding()
                 }
-                .accessibilityLabel("Synthetic calibration block, 80 by 60 by 40 millimeters")
             } else {
                 ContentUnavailableView("Photos ready", systemImage: "photo.stack", description: Text("\(project.manifest.imageCount) source photos. RealityKit reconstruction is the next Mac processing milestone."))
             }
@@ -63,7 +63,8 @@ struct ProjectEditor: View {
     }
     private func dimensionText(_ d: Dimensions) -> String {
         let unit = LengthUnit(rawValue: units) ?? .millimeters
-        let divisor: Double = unit == .meters ? 1000 : unit == .centimeters ? 10 : 1
+        let sourceFactor: Double = project.manifest.units == .meters ? 1000 : project.manifest.units == .centimeters ? 10 : 1
+        let divisor: Double = (unit == .meters ? 1000 : unit == .centimeters ? 10 : 1) / sourceFactor
         return String(format: "%.1f × %.1f × %.1f %@", d.width / divisor, d.height / divisor, d.depth / divisor, unit.rawValue)
     }
 }

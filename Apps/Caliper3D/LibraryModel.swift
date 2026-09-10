@@ -31,6 +31,9 @@ final class LibraryModel {
         panel.canChooseFiles = true; panel.allowsMultipleSelection = false
         panel.allowedContentTypes = [UTType(filenameExtension: "caliper3d") ?? .package]
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        await openProject(at: url)
+    }
+    func openProject(at url: URL) async {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         do {

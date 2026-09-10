@@ -55,8 +55,9 @@ struct WorkspaceView: View {
                                 }
                                 Spacer()
                                 Text(project.manifest.modifiedAt, style: .date).foregroundStyle(.secondary)
-                            }.padding(.vertical, 6)
+                            }.padding(.vertical, 6).contentShape(Rectangle())
                         }.buttonStyle(.plain)
+                        .accessibilityAction { library.selection = project }
                         .contextMenu { Button("Open Project") { library.selection = project } }
                     }.navigationTitle("Library")
                     .toolbar { Button("New Scan", systemImage: "plus") { destination = .newScan }.help("Start a new project") }
@@ -68,6 +69,7 @@ struct WorkspaceView: View {
             }
         }
         .task { await library.load() }
+        .onOpenURL { url in Task { await library.openProject(at: url); destination = .library } }
         .toolbar {
             ToolbarItemGroup {
                 Button("Open", systemImage: "folder") { Task { await library.openProject(); destination = .library } }

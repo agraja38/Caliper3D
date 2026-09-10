@@ -79,6 +79,16 @@ final class CoreTests: XCTestCase {
         let result = try await DemoPhotogrammetryService().reconstruct(project)
         XCTAssertEqual(result.projectID, project.id); XCTAssertTrue(result.isDemo); XCTAssertNil(result.modelURL)
     }
+    func testDemoCannotReconstructRealProject() async {
+        let project = ScanProject(manifest: ScanManifest(name: "Real", captureMethod: .importedPhotos), url: URL(fileURLWithPath: "/tmp/unused"))
+        do { _ = try await DemoPhotogrammetryService().reconstruct(project); XCTFail() } catch { }
+    }
+    func testReconstructionCancellation() async {
+        let project = ScanProject(manifest: ScanManifest(name: "Demo", captureMethod: .demo), url: URL(fileURLWithPath: "/tmp/unused"))
+        let task = Task { try await DemoPhotogrammetryService().reconstruct(project) }
+        task.cancel()
+        do { _ = try await task.value; XCTFail() } catch { XCTAssertTrue(error is CancellationError) }
+    }
     func testDemoCaptureCancellation() async {
         let task = Task { try await DemoCaptureService().capture() }
         task.cancel()

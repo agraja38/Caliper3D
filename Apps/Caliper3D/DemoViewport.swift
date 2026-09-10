@@ -10,12 +10,12 @@ struct DemoViewport: NSViewRepresentable {
         let view = ARView(frame: .zero)
         view.environment.background = .color(.windowBackgroundColor)
         let anchor = AnchorEntity(world: .zero)
-        let block = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(0.8, 0.6, 0.4), cornerRadius: 0.025),
+        let block = ModelEntity(mesh: .generateBox(size: SIMD3<Float>(0.08, 0.06, 0.04), cornerRadius: 0.0025),
                                 materials: [SimpleMaterial(color: .systemGray, roughness: 0.5, isMetallic: false)])
         block.name = "demoBlock"
         anchor.addChild(block)
         let camera = PerspectiveCamera()
-        camera.position = [0, 0, 2.3]
+        camera.position = [0, 0, 0.23]
         anchor.addChild(camera)
         let light = DirectionalLight()
         light.light.intensity = 2000

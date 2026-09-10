@@ -49,6 +49,7 @@ public struct DemoCaptureService: CaptureService {
 public struct DemoPhotogrammetryService: PhotogrammetryService {
     public init() {}
     public func reconstruct(_ project: ScanProject) async throws -> ReconstructionResult {
+        guard project.manifest.captureMethod == .demo else { throw ServiceError.notImplemented("Real reconstruction") }
         try await Task.sleep(for: .seconds(2))
         return ReconstructionResult(projectID: project.id, isDemo: true, modelURL: nil)
     }
