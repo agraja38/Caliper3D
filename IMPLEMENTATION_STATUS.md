@@ -50,3 +50,5 @@ Compatible LiDAR/Object Capture support, camera permission denial/recovery, capt
 ## v1.0.0 distribution
 
 `Scripts/package-release.sh` builds the universal Release app, ad-hoc signs it with sandbox entitlements, verifies its signature, creates/verifies the DMG and generates a SHA-256 checksum. `Scripts/install.sh` downloads the version-pinned asset, verifies integrity/version/signature, and installs to ~/Applications without sudo or replacing existing installations. Release assets belong in GitHub Releases; dist/ is ignored. Both app targets declare marketing version 1.0.0/build 1. The DMG includes only the Mac application.
+
+Published GitHub release/tag v1.0.0 with DMG, checksum and installer assets. The exact README terminal command was run successfully against the public release and installed version 1.0.0 into the local user Applications folder; installed signature verification passed. Re-running the installer correctly refused to overwrite it. Both app builds and all 19 tests passed again for the release.
