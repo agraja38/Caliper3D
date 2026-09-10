@@ -1,6 +1,6 @@
 # Implementation status
 
-Updated 2026-09-10. Working branch: development. This is a native foundation/demo release, not a live 3D scanner.
+Updated 2026-09-10. Working branch: main (single-branch workflow requested by the owner). This is a native foundation/demo release, not a live 3D scanner.
 
 ## Complete for this milestone
 

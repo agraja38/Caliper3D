@@ -1,6 +1,6 @@
 # Next steps
 
-Read PROJECT_SPEC.md and IMPLEMENTATION_STATUS.md first. Use development; do not rewrite history. Run Scripts/verify.sh and keep the handover files current.
+Read PROJECT_SPEC.md and IMPLEMENTATION_STATUS.md first. Use main as the single repository branch; do not create additional branches or rewrite history. Run Scripts/verify.sh and keep the handover files current.
 
 ## 1. Real iPhone Object Capture — next milestone
 

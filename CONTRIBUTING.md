@@ -1,6 +1,6 @@
 # Contributing
 
-Read PROJECT_SPEC.md, IMPLEMENTATION_STATUS.md and NEXT_STEPS.md before starting. Work on development or a topic branch based on it; never rewrite shared history. Keep changes native Swift/SwiftUI and local-first.
+Read PROJECT_SPEC.md, IMPLEMENTATION_STATUS.md and NEXT_STEPS.md before starting. Keep all work on main, the single repository branch requested by the owner. Do not create additional branches unless requested; never rewrite shared history. Keep changes native Swift/SwiftUI and local-first.
 
 Run `./Scripts/verify.sh` before proposing changes. Regenerate the checked-in Xcode project with `xcodegen generate` after changing project.yml. Record actual build/test results and physical-device gaps honestly. Add meaningful tests for storage, security boundaries and state transitions. Keep UI separate from services and use injected mocks for demo behavior.
 
