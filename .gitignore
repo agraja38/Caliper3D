@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+DerivedData/
+.build-logs/
+*.xcuserstate
+xcuserdata/
+*.caliper3d/
+*.mobileprovision
+*.p12
+*.pem
+.env*
+graphify-out/
