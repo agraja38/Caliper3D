@@ -24,3 +24,6 @@ Keep all work on main as the single repository branch, per the owner’s updated
 
 ## Foundation implementation decisions
 The checked-in Xcode project/workspace is generated from project.yml using XcodeGen; building does not require the generator. Demo schemes pass --demo-mode. App package dependencies are local SwiftPM packages. RealityKit ARView is wrapped for macOS 14 compatibility because RealityView starts at macOS 15. Mac packages use UUID filenames under Application Support with separate demo storage. MIT license. See docs/Architecture.md for storage and concurrency constraints; see docs/Environment.md for the verified SDK and Simulator workaround.
+
+## Distribution
+Version 1.0.0 is the foundation/demo milestone, not a complete scanning product. Both targets use MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.yml. Distribute universal Mac DMGs through version-tagged GitHub Releases with SHA-256 checksums and a version-pinned user-local installer. Release binaries are ignored in Git. Until Developer ID signing and notarization are configured, explicitly label downloads as ad-hoc signed/unnotarized and never remove quarantine or disable Gatekeeper in installation scripts. Keep installer and packaging version values aligned for each release.

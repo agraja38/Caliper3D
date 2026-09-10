@@ -33,3 +33,7 @@ Read PROJECT_SPEC.md and IMPLEMENTATION_STATUS.md first. Use main as the single 
 
 - Implement non-destructive cleanup/smoothing, mesh statistics, calibrated dimensions/units and validated STL export through the existing contracts.
 - Design a safe Xcode/provisioning-based companion setup separately; installation status is currently unknown. Do not add insecure sideloading.
+
+## Distribution follow-up
+
+The v1.0.0 foundation/demo release has a universal Mac DMG and terminal installer. Configure Developer ID signing and notarization outside Git for future releases. Validate first launch on a clean Mac and Intel hardware; local universal compilation is not an Intel runtime test. For subsequent versions, update project.yml and both release scripts together, rebuild assets and publish a new immutable version tag.

@@ -1,6 +1,6 @@
 # Implementation status
 
-Updated 2026-09-10. Working branch: main (single-branch workflow requested by the owner). This is a native foundation/demo release, not a live 3D scanner.
+Updated 2026-09-10. Working branch: main (single-branch workflow requested by the owner). Version: **1.0.0** (build 1). This is a native foundation/demo release, not a live 3D scanner.
 
 ## Complete for this milestone
 
@@ -41,8 +41,12 @@ Live ObjectCaptureSession/ObjectCaptureView integration, camera permission flow,
 
 ## Environment issue / blocked verification
 
-Xcode's scheme destination resolution requires an iOS 26.5 platform component that it considers missing. The official runtime download timed out. Target-level Simulator compilation and execution on existing iOS 26.3 succeeded, so this is not a compilation blocker. See docs/Environment.md. Signed installation/distribution was not attempted.
+Xcode's scheme destination resolution requires an iOS 26.5 platform component that it considers missing. The official runtime download timed out. Target-level Simulator compilation and execution on existing iOS 26.3 succeeded, so this is not a compilation blocker. See docs/Environment.md. The v1.0.0 Mac distribution is universal (arm64/x86_64), ad-hoc signed and packaged as a verified DMG. Developer ID signing/notarization remain unavailable; the existing Apple Development identity was not used for distribution.
 
 ## Requires real-device verification
 
 Compatible LiDAR/Object Capture support, camera permission denial/recovery, capture feedback, tracking interruption, thermal/storage pressure, real image/depth quality, multi-angle capture, background/resume behavior, real LAN pairing/permissions/transfers and Mac reconstruction fidelity. Xcode listed a physical phone, but no physical-device capture or installation was performed. macOS 14/iOS 17 minimum-runtime behavior, VoiceOver and broad Dynamic Type testing also remain outstanding.
+
+## v1.0.0 distribution
+
+`Scripts/package-release.sh` builds the universal Release app, ad-hoc signs it with sandbox entitlements, verifies its signature, creates/verifies the DMG and generates a SHA-256 checksum. `Scripts/install.sh` downloads the version-pinned asset, verifies integrity/version/signature, and installs to ~/Applications without sudo or replacing existing installations. Release assets belong in GitHub Releases; dist/ is ignored. Both app targets declare marketing version 1.0.0/build 1. The DMG includes only the Mac application.

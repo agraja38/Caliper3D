@@ -4,6 +4,22 @@
 
 Native Swift and SwiftUI. Local-first. No accounts or cloud backend.
 
+## Install v1.0.0
+
+[Download Caliper3D-1.0.0.dmg](https://github.com/agraja38/Caliper3D/releases/download/v1.0.0/Caliper3D-1.0.0.dmg) · [Release notes and checksums](https://github.com/agraja38/Caliper3D/releases/tag/v1.0.0)
+
+Requires **macOS 14+**, on Apple Silicon or Intel. No Xcode is needed for the Mac download. Install from Terminal with this single command:
+
+```sh
+curl -fsSL https://github.com/agraja38/Caliper3D/releases/download/v1.0.0/install.sh | /bin/bash
+```
+
+The installer verifies the DMG’s SHA-256 checksum, installs to `~/Applications/Caliper3D.app`, and refuses to overwrite an existing app. It does not use sudo or disable macOS security protections. You can inspect [the installer](Scripts/install.sh) before running it, or open the DMG and drag the app into Applications.
+
+**Signing:** this release is ad-hoc signed, not Developer ID signed or notarized. macOS may block first launch; after reviewing the download, use the normal **System Settings → Privacy & Security → Open Anyway** workflow if offered ([Apple’s instructions](https://support.apple.com/en-ca/guide/mac-help/mh40616/mac)). The checksum detects download corruption; it is not a Developer ID identity guarantee.
+
+**v1.0.0 is the foundation/demo release.** Choose **Try Demo Project** to explore the Mac app. Real scanning, transfer, reconstruction and STL export are still planned. The DMG contains the Mac app; the iPhone companion currently requires building from source.
+
 ## Development status
 
 This is a working **foundation and demo release**, not yet a functioning physical object scanner.

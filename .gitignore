@@ -10,3 +10,4 @@ xcuserdata/
 *.pem
 .env*
 graphify-out/
+dist/
