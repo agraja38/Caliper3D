@@ -25,9 +25,11 @@ Simulator runtime checks performed:
 - Demo app → New Scan → simulated capture → review → simulated transfer complete.
 - A labeled synthetic storage fixture → persistent review/preview/count/size → rename → Simulator restart/relaunch → renamed capture retained → delete confirmation shown and dismissed. This is storage/UI verification, not a real scan.
 
-## Physical capture verification: NOT COMPLETE
+## Physical capture verification: PASSED (user-reported at Session 3 start)
 
-A paired iPhone was visible. The target has no configured signing team/provisioning, so no signed install or real camera scan was performed. ObjectCaptureSession.isSupported was not evaluated on that physical phone. Detection, actual image acquisition, pass completion, finalization, image/depth quality, flip, tracking recovery and device relaunch with real data all remain a required hardware gate.
+The user installed and launched Caliper3D Capture on a supported physical iPhone, scanned a computer mouse with real Object Capture, completed Finish, and saw Capture Review with the real capture, photo count, storage size and Ready to send. After terminating and reopening the app, the mouse capture remained in Recent Captures. This confirms the basic capture-to-persistent-review hardware gate.
+
+No additional physical tests are claimed: permission denial/recovery, full-pass detection, additional passes, flip, interruption recovery, low storage, depth quality and network transfer remain unverified. Session 3 began with a clean checkout and no local signing diff; personal signing settings and scan data are not committed.
 
 ## Partial / limitations
 

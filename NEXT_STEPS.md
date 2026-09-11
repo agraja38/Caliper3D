@@ -2,11 +2,9 @@
 
 Use main only. Read PROJECT_SPEC.md, IMPLEMENTATION_STATUS.md and docs/ObjectCapture.md. Do not rewrite history or alter v1.0.0 release/tag.
 
-## 1. Finish the physical Object Capture validation gate
+## 1. Session 3: secure local transfer
 
-Production capture is implemented; a real scan has not completed in testing. Configure the iPhone target's signing locally without committing personal settings, then run the ordinary Caliper3DCapture scheme on an Apple-supported iPhone.
-
-Verify support → permission → detection/selection → capture with real shot counts/feedback → full scan pass → Finish → actual completed state → saved Images/Checkpoints and metadata → review → relaunch persistence. Inspect actual files and record errors. isSupported alone is not success.
+The user has verified a real mouse scan, successful Finish, review metadata and persistence after relaunch. Implement the versioned, bounded transfer protocol, TLS pairing and pinned trust, streamed integrity-checked staging/resume, and explicit receive/send UI. Transfer must finish as a valid .caliper3d project before any reconstruction work.
 
 Then verify permission denial/recovery, multiple passes, optional flip, point-cloud review, background/pause/resume, tracking failure, cancel, low storage and metadata write failure. Confirm that the driver releases the camera promptly and that incomplete datasets remain distinct from ready captures. Keep real images outside Git.
 

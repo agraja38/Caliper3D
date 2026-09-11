@@ -1,6 +1,6 @@
 # iPhone Object Capture
 
-Session 2 implementation on main, 2026-09-11. The public v1.0.0 release/tag and marketing version are unchanged. **No complete physical Object Capture scan has been verified.**
+Session 2 implementation on main, 2026-09-11. The public v1.0.0 release/tag and marketing version are unchanged. **The user confirmed a complete physical mouse scan and relaunch persistence at the start of Session 3.**
 
 ## Ownership and state flow
 
@@ -68,4 +68,8 @@ Cancel/failure preserves Images and Checkpoints and marks metadata interrupted/f
 - Simulator production mode showed the unsupported screen without a permission request. Demo capture → review → simulated transfer completed. A clearly labeled synthetic fixture outside Git exercised production review/preview, rename, relaunch persistence and the delete confirmation; it was not an Object Capture scan.
 - A paired iPhone was visible, but no signing team/provisioning configuration is present for this target. No signing assets were created, no physical capture was started, and isSupported was not evaluated on that phone.
 
-Next gate: configure signing locally, run the ordinary Caliper3DCapture scheme on a supported iPhone, verify permission/detection/real image acquisition/shot counts/full pass/finish/completed/persistent files/relaunch, then interruption, flip and storage-pressure behavior. Keep captures outside Git. Do not start networking until that physical capture gate passes.
+### User hardware result at Session 3 start
+
+The user installed/launched the app on a supported iPhone, ran real Object Capture on a computer mouse, completed Finish, saw the actual capture in Review with photo count, storage size and Ready to send, then terminated/reopened the app and found the capture in Recent Captures. The basic physical capture gate has passed. This is user-reported evidence, not an additional agent-performed scan.
+
+Full-pass signaling, multiple passes, flip, permission denial, interruption recovery, low storage and depth quality were not reported as tested. Secure local transfer is the next milestone; keep all real capture data outside Git.
