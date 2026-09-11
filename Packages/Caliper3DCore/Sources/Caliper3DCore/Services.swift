@@ -10,6 +10,7 @@ public protocol ScanProjectStore: Sendable {
 public enum CaptureCompatibility: Equatable, Sendable {
     case available, unavailable(String)
 }
+/// Legacy one-shot boundary for temporary demo capture only. Production uses CaptureSessionDriver.
 public protocol CaptureService: Sendable {
     func compatibility() async -> CaptureCompatibility
     func capture() async throws -> CaptureRecord

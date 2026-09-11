@@ -14,9 +14,15 @@ struct CaptureRootView: View {
     @AppStorage("onboardingComplete") private var onboarded = false
     var body: some View {
         if onboarded {
-            CaptureHomeView(demo: demo,
-                            capture: demo ? DemoCaptureService() : UnavailableCaptureService(),
-                            transfer: demo ? DemoTransferService() : UnavailableTransferService())
+            if demo {
+                CaptureHomeView(demo: true, capture: DemoCaptureService(), transfer: DemoTransferService())
+            } else {
+                ProductionCaptureHome(
+                    repository: LocalCaptureRepository(root: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+                        .resolvingSymlinksInPath()
+                        .appendingPathComponent("Library/Application Support/Caliper3D/Captures", isDirectory: true)),
+                    factory: ObjectCaptureFactory(), permission: CameraAuthorization())
+            }
         } else { OnboardingView { onboarded = true } }
     }
 }

@@ -47,6 +47,7 @@ public protocol CaptureRepository: Sendable {
     func library() async throws -> CaptureLibrary
     func rename(_ id: UUID, name: String) async throws -> CaptureRecord
     func delete(_ id: UUID) async throws
+    func previewJPEG(_ id: UUID) async throws -> Data?
 }
 public enum CaptureStorageError: Error, LocalizedError, Equatable {
     case invalidMetadata, unsafePath, insufficientSpace, noImages, invalidName, alreadyCompleted

@@ -1,4 +1,5 @@
 import Foundation
+import ImageIO
 
 /// App-private, UUID-only storage. No operations follow symlinks within a capture tree.
 public actor LocalCaptureRepository: CaptureRepository {
@@ -11,7 +12,7 @@ public actor LocalCaptureRepository: CaptureRepository {
         let attributes = try FileManager.default.attributesOfFileSystem(forPath: url.path)
         return (attributes[.systemFreeSize] as? NSNumber)?.int64Value ?? 0
     }) {
-        self.root = root.standardizedFileURL; self.availableBytes = availableBytes
+        self.root = root; self.availableBytes = availableBytes
     }
     public func allocate(name: String) throws -> CaptureDirectories {
         let name = try validatedName(name)
@@ -56,7 +57,13 @@ public actor LocalCaptureRepository: CaptureRepository {
             }
             do {
                 let record = try read(id)
-                if record.status == .ready { result.completed.append(record) }
+                if record.status == .ready {
+                    let stats = try inspect(owned(id))
+                    guard stats.images > 0, stats.images == record.imageCount, stats.bytes == record.totalBytes else {
+                        throw CaptureStorageError.invalidMetadata
+                    }
+                    result.completed.append(record)
+                }
                 else { result.incomplete.append(record) }
             } catch { result.unreadableCount += 1 }
         }
@@ -75,6 +82,31 @@ public actor LocalCaptureRepository: CaptureRepository {
         _ = try inspect(folder) // reject links anywhere, including checkpoint trees
         try files.removeItem(at: folder)
     }
+    public func previewJPEG(_ id: UUID) throws -> Data? {
+        guard try read(id).status == .ready else { return nil }
+        let folder = try owned(id)
+        _ = try inspect(folder)
+        let images = folder.appendingPathComponent("Images")
+        let candidates = try files.contentsOfDirectory(at: images, includingPropertiesForKeys: nil)
+            .filter { ["heic", "heif", "jpg", "jpeg", "png"].contains($0.pathExtension.lowercased()) }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        for url in candidates.prefix(3) {
+            let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+            guard values.isRegularFile == true, let size = values.fileSize, size > 0, size <= 100_000_000 else { continue }
+            guard let source = CGImageSourceCreateWithURL(url as CFURL, [kCGImageSourceShouldCache: false] as CFDictionary),
+                  let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                    kCGImageSourceCreateThumbnailFromImageAlways: true,
+                    kCGImageSourceCreateThumbnailWithTransform: true,
+                    kCGImageSourceThumbnailMaxPixelSize: 640
+                  ] as CFDictionary) else { continue }
+            let data = NSMutableData()
+            guard let destination = CGImageDestinationCreateWithData(data, "public.jpeg" as CFString, 1, nil) else { return nil }
+            CGImageDestinationAddImage(destination, thumbnail, nil)
+            guard CGImageDestinationFinalize(destination) else { return nil }
+            return data as Data
+        }
+        return nil
+    }
     private func validatedName(_ value: String) throws -> String {
         let name = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty, name.count <= 120, !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains) else {
@@ -83,17 +115,36 @@ public actor LocalCaptureRepository: CaptureRepository {
         return name
     }
     private func prepareRoot() throws {
+        try rejectSymbolicAncestors(root)
         try files.createDirectory(at: root, withIntermediateDirectories: true)
         try validateDirectory(root)
     }
     private func validateDirectory(_ url: URL) throws {
-        // Also reject a symlink in any parent component. App containers may resolve /var → /private/var,
-        // so callers pass a canonical root; never canonicalize a capture supplied by metadata.
-        guard url.standardizedFileURL.path == url.resolvingSymlinksInPath().standardizedFileURL.path else {
-            throw CaptureStorageError.unsafePath
-        }
+        try rejectSymbolicAncestors(url)
         let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
         guard values.isDirectory == true, values.isSymbolicLink != true else { throw CaptureStorageError.unsafePath }
+    }
+    private func rejectSymbolicAncestors(_ url: URL) throws {
+        guard url.isFileURL, url.path.hasPrefix("/"), !url.pathComponents.contains("..") else {
+            throw CaptureStorageError.unsafePath
+        }
+        // Foundation preserves Darwin's /var and /tmp aliases even after resolving symlinks.
+        // Permit only those exact system aliases with their expected targets; no app-owned link.
+        // Inspect ancestors even when the final leaf does not exist yet.
+        var components = url.path.split(separator: "/").map(String.init)
+        while !components.isEmpty {
+            let path = "/" + components.joined(separator: "/")
+            if let attributes = try? files.attributesOfItem(atPath: path),
+               attributes[.type] as? FileAttributeType == .typeSymbolicLink {
+                let destination = try files.destinationOfSymbolicLink(atPath: path)
+                let expectedSystemTarget = ["/var": "private/var", "/tmp": "private/tmp"][path]
+                guard let expectedSystemTarget,
+                      destination == expectedSystemTarget || destination == "/" + expectedSystemTarget else {
+                    throw CaptureStorageError.unsafePath
+                }
+            }
+            components.removeLast()
+        }
     }
     private func owned(_ id: UUID) throws -> URL {
         try validateDirectory(root)

@@ -43,6 +43,7 @@ public struct ScanSnapshot: Equatable, Sendable {
     public var tracking: ScanTracking = .initializing
     public var passCompleted = false
     public var paused = false
+    public var failureIsStorage = false
     public var failure: String?
     public init() {}
     public var guidance: String? {
@@ -137,7 +138,8 @@ public final class CaptureSessionModel {
             stage = .saving
             await save(directories.id)
         } else if value.phase == .failed, !didComplete {
-            stage = .failed(value.failure ?? "Object Capture could not continue.")
+            let failure = value.failure ?? "Object Capture could not continue."
+            stage = value.failureIsStorage ? .storageFailure(failure) : .failed(failure)
             driver?.stopObserving()
             if let directories {
                 do { try await repository.markIncomplete(directories.id, failed: true) }
@@ -182,7 +184,7 @@ public final class CaptureSessionModel {
     }
     public func confirmFlip() {
         guard flipPending, stage == .live, snapshot.phase == .capturing else { return }
-        flipPending = false; driver?.nextPassAfterFlip(); driver?.resume()
+        flipPending = false; needsPause = false; driver?.nextPassAfterFlip(); driver?.resume()
     }
     public func cancelFlip() { flipPending = false; resume() }
     public func pause() {
@@ -195,7 +197,7 @@ public final class CaptureSessionModel {
         needsPause = false; driver?.resume()
     }
     public func cancel() async {
-        guard stage != .saving else { return } // completion metadata must settle before dismissal
+        guard stage != .saving, stage != .cancelled else { return } // completion metadata must settle before dismissal
         generation = UUID(); observation?.cancel(); observation = nil
         if !didComplete { driver?.cancel() }
         driver?.stopObserving(); driver = nil

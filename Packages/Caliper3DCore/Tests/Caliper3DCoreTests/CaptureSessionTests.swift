@@ -33,15 +33,23 @@ private actor RepositoryStub: CaptureRepository {
     func library() -> CaptureLibrary { CaptureLibrary() }
     func rename(_ id: UUID, name: String) throws -> CaptureRecord { throw CaptureStorageError.invalidMetadata }
     func delete(_ id: UUID) {}
+    func previewJPEG(_ id: UUID) -> Data? { nil }
+}
+private actor DelayedPermission: CameraPermissionService {
+    var pending: CheckedContinuation<CameraPermission, Never>?
+    func status() -> CameraPermission { .notDetermined }
+    func request() async -> CameraPermission { await withCheckedContinuation { pending = $0 } }
+    func isPending() -> Bool { pending != nil }
+    func allow() { pending?.resume(returning: .allowed); pending = nil }
 }
 @MainActor private final class DriverStub: CaptureSessionDriver {
     let updates: AsyncStream<ScanSnapshot>
     let continuation: AsyncStream<ScanSnapshot>.Continuation
     var actions: [String] = []
     init() { let stream = AsyncStream<ScanSnapshot>.makeStream(); updates = stream.stream; continuation = stream.continuation }
-    func emit(_ phase: ScanPhase, shots: Int = 0, pass: Bool = false, paused: Bool = false) {
+    func emit(_ phase: ScanPhase, shots: Int = 0, pass: Bool = false, paused: Bool = false, storageFailure: Bool = false) {
         var value = ScanSnapshot(); value.phase = phase; value.shots = shots; value.passCompleted = pass
-        value.paused = paused; value.tracking = .normal; continuation.yield(value)
+        value.paused = paused; value.tracking = .normal; value.failureIsStorage = storageFailure; continuation.yield(value)
     }
     func start(_ directories: CaptureDirectories) { actions.append("start") }
     func detect() -> Bool { actions.append("detect"); return true }
@@ -175,4 +183,47 @@ private actor RepositoryStub: CaptureRepository {
         value.tracking = .excessiveMotion
         XCTAssertEqual(value.guidance, ScanTracking.excessiveMotion.message)
     }
+    func testBackgroundDuringInitializationPausesWhenReady() async {
+        let factory = FactoryStub()
+        let model = CaptureSessionModel(factory: factory, permission: PermissionStub(.allowed), repository: RepositoryStub())
+        await model.begin(); model.pause()
+        XCTAssertEqual(factory.driver.actions, ["start"])
+        factory.driver.emit(.ready)
+        await settle { factory.driver.actions.contains("pause") }
+        factory.driver.emit(.ready, paused: true); await settle { model.snapshot.paused }
+        model.detect(); XCTAssertFalse(factory.driver.actions.contains("detect"))
+        model.resume(); XCTAssertEqual(factory.driver.actions.last, "resume")
+        await model.cancel()
+    }
+    func testNoImagesOrPausedStateCannotFinish() {
+        var snapshot = ScanSnapshot(); snapshot.phase = .capturing
+        XCTAssertFalse(snapshot.canFinish)
+        snapshot.shots = 3; XCTAssertTrue(snapshot.canFinish)
+        snapshot.paused = true; XCTAssertFalse(snapshot.canFinish); XCTAssertFalse(snapshot.canAddPass)
+        snapshot.phase = .finishing; snapshot.paused = false; XCTAssertFalse(snapshot.canFinish)
+    }
+
+    func testCancellationWhilePermissionIsPendingCannotStartCameraLater() async {
+        let factory = FactoryStub(), permission = DelayedPermission(), repo = RepositoryStub()
+        let model = CaptureSessionModel(factory: factory, permission: permission, repository: repo)
+        let start = Task { await model.begin() }
+        for _ in 0..<200 {
+            if await permission.isPending() { break }
+            await Task.yield()
+        }
+        await model.cancel(); await permission.allow(); await start.value
+        XCTAssertEqual(model.stage, .cancelled); XCTAssertEqual(factory.made, 0)
+        let allocations = await repo.allocations; XCTAssertEqual(allocations, 0)
+    }
+
+    func testRealityKitStorageFailureRemainsAStorageError() async {
+        let factory = FactoryStub(), repo = RepositoryStub()
+        let model = CaptureSessionModel(factory: factory, permission: PermissionStub(.allowed), repository: repo)
+        await model.begin(); factory.driver.emit(.failed, storageFailure: true)
+        await settle { if case .storageFailure = model.stage { return true }; return false }
+        XCTAssertFalse(model.canRetrySave)
+        let saved = await repo.completes; XCTAssertEqual(saved, 0)
+        await model.cancel()
+    }
+
 }

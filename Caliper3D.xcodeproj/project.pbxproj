@@ -8,11 +8,15 @@
 
 /* Begin PBXBuildFile section */
 		08164844F1F17EF4A06A1F17 /* Caliper3DCore in Frameworks */ = {isa = PBXBuildFile; productRef = 16CE74BFB0A7AC57FB3B9855 /* Caliper3DCore */; };
+		12BF6918687B1B048FADD673 /* LiveCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D79C844AEF1F3404B3962FEC /* LiveCaptureView.swift */; };
+		2F964A18EC12EE7D8C33982B /* ObjectCaptureDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 852869046CDF3C620DD2D428 /* ObjectCaptureDriver.swift */; };
 		390BA26E040EA18509B9EEE7 /* Caliper3DCore in Frameworks */ = {isa = PBXBuildFile; productRef = 624F7E73A56225EC324617DA /* Caliper3DCore */; };
 		4483D3FE430718798A5A53EE /* DemoViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B4FC4DEED284722E8BDFC51 /* DemoViewport.swift */; };
+		4499E2B84C0EFD0BD345F4EC /* ProductionCaptureHome.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B687D181DE7910A3450DE8 /* ProductionCaptureHome.swift */; };
 		4A446310CA831DE9E58E8307 /* Caliper3DCaptureApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */; };
 		6E62F324A89C8592A676CF30 /* Caliper3DMesh in Frameworks */ = {isa = PBXBuildFile; productRef = 1327D93CD31FFC1C14B41DBF /* Caliper3DMesh */; };
 		76D91330ED7D6BEEC5363A42 /* CaptureHomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */; };
+		88FDC4E07217313DF3B7C138 /* CameraAuthorization.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B5CD502CC2E8A0C8670950 /* CameraAuthorization.swift */; };
 		92F631A4234DF5B700DD2CD9 /* WorkspaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A95E19E29A40B76569F0338F /* WorkspaceView.swift */; };
 		984800B761B05D4CD4E27B13 /* Caliper3DTransfer in Frameworks */ = {isa = PBXBuildFile; productRef = 794FDC89B22AFF88DDC43BD0 /* Caliper3DTransfer */; };
 		9D996AA29C2F7A03D2003411 /* Caliper3DApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E6D6E2D00D2C138D42B570D /* Caliper3DApp.swift */; };
@@ -36,6 +40,8 @@
 		6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Caliper3DCaptureApp.swift; sourceTree = "<group>"; };
 		791B9D5843F13E1538F74038 /* Caliper3DInstaller */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DInstaller; path = Packages/Caliper3DInstaller; sourceTree = SOURCE_ROOT; };
 		8226EC81E45243D4F4B74954 /* DevicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevicesView.swift; sourceTree = "<group>"; };
+		852869046CDF3C620DD2D428 /* ObjectCaptureDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObjectCaptureDriver.swift; sourceTree = "<group>"; };
+		97B5CD502CC2E8A0C8670950 /* CameraAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraAuthorization.swift; sourceTree = "<group>"; };
 		A03EF0B85BA66E4D8A9AB499 /* Caliper3D.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Caliper3D.entitlements; sourceTree = "<group>"; };
 		A95E19E29A40B76569F0338F /* WorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceView.swift; sourceTree = "<group>"; };
 		B0F9D16F72BD140B17A87A45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -43,6 +49,8 @@
 		C3FFB927F9146046331B016B /* Caliper3DTransfer */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DTransfer; path = Packages/Caliper3DTransfer; sourceTree = SOURCE_ROOT; };
 		C4994A94F57CCD0598358381 /* CaptureFlowModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureFlowModel.swift; sourceTree = "<group>"; };
 		C6980FCF4CCDA38E59DF4B6D /* Caliper3DCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Caliper3DCore; path = Packages/Caliper3DCore; sourceTree = SOURCE_ROOT; };
+		C9B687D181DE7910A3450DE8 /* ProductionCaptureHome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductionCaptureHome.swift; sourceTree = "<group>"; };
+		D79C844AEF1F3404B3962FEC /* LiveCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCaptureView.swift; sourceTree = "<group>"; };
 		DD8DCE77187A9763555F1D16 /* ProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingView.swift; sourceTree = "<group>"; };
 		EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureHomeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -75,9 +83,13 @@
 			isa = PBXGroup;
 			children = (
 				6527813AA5BEDB2D5F17D17F /* Caliper3DCaptureApp.swift */,
+				97B5CD502CC2E8A0C8670950 /* CameraAuthorization.swift */,
 				C4994A94F57CCD0598358381 /* CaptureFlowModel.swift */,
 				EB400D0D498E7B604C8F6D87 /* CaptureHomeView.swift */,
 				0C0B5E8EDB260A0C0AE5597D /* Info.plist */,
+				D79C844AEF1F3404B3962FEC /* LiveCaptureView.swift */,
+				852869046CDF3C620DD2D428 /* ObjectCaptureDriver.swift */,
+				C9B687D181DE7910A3450DE8 /* ProductionCaptureHome.swift */,
 			);
 			name = Caliper3DCapture;
 			path = Apps/Caliper3DCapture;
@@ -224,8 +236,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				4A446310CA831DE9E58E8307 /* Caliper3DCaptureApp.swift in Sources */,
+				88FDC4E07217313DF3B7C138 /* CameraAuthorization.swift in Sources */,
 				B18E7B8658EDB2B0C295AEA1 /* CaptureFlowModel.swift in Sources */,
 				76D91330ED7D6BEEC5363A42 /* CaptureHomeView.swift in Sources */,
+				12BF6918687B1B048FADD673 /* LiveCaptureView.swift in Sources */,
+				2F964A18EC12EE7D8C33982B /* ObjectCaptureDriver.swift in Sources */,
+				4499E2B84C0EFD0BD345F4EC /* ProductionCaptureHome.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
