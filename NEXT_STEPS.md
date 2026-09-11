@@ -1,39 +1,24 @@
 # Next steps
 
-Read PROJECT_SPEC.md and IMPLEMENTATION_STATUS.md first. Use main as the single repository branch; do not create additional branches or rewrite history. Run Scripts/verify.sh and keep the handover files current.
+Use main only. Read PROJECT_SPEC.md, IMPLEMENTATION_STATUS.md and docs/ObjectCapture.md. Do not rewrite history or alter v1.0.0 release/tag.
 
-## 1. Real iPhone Object Capture — next milestone
+## 1. Finish the physical Object Capture validation gate
 
-- Inspect current installed `_RealityKit_SwiftUI` SDK interfaces before coding. ObjectCaptureSession and ObjectCaptureView are iOS 17+, with MainActor-isolated session APIs.
-- Add a production capture adapter and event/state contract for initializing, ready, detecting, capturing, finishing, completed, failed; expose actual progress/feedback and explicit finish/cancel. Keep UI-facing bridging small and account for Apple's required isolation.
-- Check actual support and camera permission. Preserve useful unavailable/simulator explanations; retain independently injected demos.
-- Create unique capture directories with real image/depth/checkpoint storage, persistent metadata, review and safe deletion. Handle disk pressure, denial, interruptions, app backgrounding and recovery.
-- Verify on a compatible physical LiDAR iPhone. Do not infer Object Capture capability solely from a model name or ARKit depth support.
+Production capture is implemented; a real scan has not completed in testing. Configure the iPhone target's signing locally without committing personal settings, then run the ordinary Caliper3DCapture scheme on an Apple-supported iPhone.
 
-## 2. Secure local discovery and transfer
+Verify support → permission → detection/selection → capture with real shot counts/feedback → full scan pass → Finish → actual completed state → saved Images/Checkpoints and metadata → review → relaunch persistence. Inspect actual files and record errors. isSupported alone is not success.
 
-- Specify the versioned wire protocol and pairing threat model before activating a listener. Use Network.framework + Bonjour, explicit peer approval and authenticated encrypted transport.
-- Add staged bounded transfer, integrity validation, file-count/aggregate quotas, full path/symlink defenses, disk checks, cancellation and resumability. SHA-256 alone is not sender authentication.
-- Test malformed frames, traversal, failed peers, truncation, mismatch, timeouts and recovery. Never mix demo transport with real captures.
+Then verify permission denial/recovery, multiple passes, optional flip, point-cloud review, background/pause/resume, tracking failure, cancel, low storage and metadata write failure. Confirm that the driver releases the camera promptly and that incomplete datasets remain distinct from ready captures. Keep real images outside Git.
 
-## 3. Real Mac reconstruction
+## 2. Capture reliability after device evidence
 
-- Add PhotogrammetrySession adapter with support checks, output-event mapping, cancellation, errors and durable job state.
-- Validate input image contents and capacity before submitting. Preserve originals; write unique reconstruction outputs and explicit manifest asset/provenance records with a schema migration strategy.
-- Load real output geometry into the central RealityKit viewport. Persist only verified successful results.
+- Fix any hardware lifecycle issues before widening scope.
+- Add automated iOS UI tests and exercise VoiceOver, larger Dynamic Type and iOS 17/17.4/18 availability paths.
+- Decide how to recover a dataset interrupted during finishing/metadata save. Never mark it ready solely because photos exist, or assume checkpoint files restore the capture session.
+- Consider diagnostics for unreadable captures and explicit export/recovery of incomplete data; retain safe UUID ownership checks and no blind cleanup.
 
-## 4. Foundation hardening
+## 3. Session 3, only after capture is reliable
 
-- Add app state-machine and UI automation tests, VoiceOver/Dynamic Type checks, minimum OS runtime coverage and signed-build document-opening checks.
-- Make library enumeration tolerate/report individual corrupt packages; add recent external projects with security-scoped bookmarks, rename/delete, aggregate import limits, free-space checks and robust hostile-package validation before asset loading.
-- Consider Swift 6 language mode once all protocol/SDK actor-isolation boundaries are implemented.
-- Repair Xcode's iOS 26.5 platform component for scheme-based Simulator Run; current target-level build plus installed iOS 26.3 runtime works. No signing credentials are in the project.
+Design authenticated local Network.framework transfer with explicit pairing, encryption, bounded messages/files, safe paths, staged completion, integrity validation and recovery. Real captures are stored by UUID under app-owned Captures/<UUID>; resolve through a validated repository boundary. Do not use Multipeer Connectivity or mix demo transport with real datasets.
 
-## 5. Mesh tools and companion setup
-
-- Implement non-destructive cleanup/smoothing, mesh statistics, calibrated dimensions/units and validated STL export through the existing contracts.
-- Design a safe Xcode/provisioning-based companion setup separately; installation status is currently unknown. Do not add insecure sideloading.
-
-## Distribution follow-up
-
-The v1.0.0 foundation/demo release has a universal Mac DMG and terminal installer. Configure Developer ID signing and notarization outside Git for future releases. Validate first launch on a clean Mac and Intel hardware; local universal compilation is not an Intel runtime test. For subsequent versions, update project.yml and both release scripts together, rebuild assets and publish a new immutable version tag.
+Mac reconstruction and mesh/STL work follow reliable capture and transfer. No release/version bump is required merely for this development milestone.

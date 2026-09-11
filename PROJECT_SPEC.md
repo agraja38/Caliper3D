@@ -7,7 +7,7 @@ Caliper3D turns a LiDAR-equipped iPhone and a Mac into an open-source, local-fir
 - iPhone captures camera/LiDAR/Object Capture data; Mac receives captures and performs RealityKit photogrammetry and later mesh cleanup, measurement, calibration and STL export.
 - Network.framework + Bonjour for future local discovery/transfer; never Multipeer Connectivity. CryptoKit for integrity/authentication. Model I/O for future mesh import/export. OSLog with private metadata.
 - Apps contain UI and injected UI-facing state. Shared packages: Core (models, storage, capture/reconstruction contracts), Transfer (discovery/transfer), Mesh (processing/analysis/export contracts), Installer (installation contracts only).
-- Services use protocols and actors for mutable asynchronous data. No global monolithic AppState. MainActor is reserved for UI state.
+- Services use protocols and actors for mutable asynchronous data. No global monolithic AppState. MainActor is used for UI-facing state and Apple-mandated live Object Capture session APIs.
 - Explicit --demo-mode injects mocks. Demo geometry and capture metadata are synthetic; production never pretends hardware or network operations succeeded.
 
 ## UX
@@ -27,3 +27,8 @@ The checked-in Xcode project/workspace is generated from project.yml using Xcode
 
 ## Distribution
 Version 1.0.0 is the foundation/demo milestone, not a complete scanning product. Both targets use MARKETING_VERSION and CURRENT_PROJECT_VERSION in project.yml. Distribute universal Mac DMGs through version-tagged GitHub Releases with SHA-256 checksums and a version-pinned user-local installer. Release binaries are ignored in Git. Until Developer ID signing and notarization are configured, explicitly label downloads as ad-hoc signed/unnotarized and never remove quarantine or disable Gatekeeper in installation scripts. Keep installer and packaging version values aligned for each release.
+
+## Live iPhone capture architecture (Session 2)
+Production uses CaptureSessionModel + CaptureSessionDriver/Factory, with a RealityKit ObjectCaptureDriver in the iPhone app. The live session stays MainActor-isolated and is presented by ObjectCaptureView. Core contains Sendable snapshots, permission/repository contracts and the testable lifecycle model; one-shot CaptureService is retained for demos/compatibility only. Never construct a real session without ObjectCaptureSession.isSupported and camera permission. Simulator never creates one.
+
+Capture datasets use a separate schema-1 capture.json under app-private Application Support/Caliper3D/Captures/<UUID>, with Images and Checkpoints directories. Only actual completed sessions with inspected nonempty image files become ready. Human names do not form paths. Cancel/failure preserves incomplete datasets; deletion is explicit and UUID-scoped. Over-capture is enabled for later Mac reconstruction. Checkpoints do not promise saved-session resume. See docs/ObjectCapture.md; a physical end-to-end scan remains unverified.

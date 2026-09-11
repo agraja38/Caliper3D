@@ -15,7 +15,7 @@ Read PROJECT_SPEC.md for stable product decisions and IMPLEMENTATION_STATUS.md f
 
 Both applications depend on Core and Transfer. Mac additionally links Mesh and Installer. No package depends on either app. Services are injected at app composition or feature construction. LibraryModel, ProcessingModel and CaptureFlowModel are separate MainActor UI models. LocalProjectStore is an actor; it performs filesystem work outside MainActor. Network services currently have no socket implementation.
 
-The capture protocol intentionally supports the demo lifecycle today. Real Object Capture needs a session adapter with progress, feedback, pause/resume/finish and a UI bridge to ObjectCaptureView. Do not implement that by adding fake progress to the existing one-shot method. Account for Apple's MainActor-isolated session API explicitly.
+Production capture uses a live MainActor CaptureSessionDriver/Factory and observable CaptureSessionModel. The iOS adapter owns Apple's session and streams safe snapshots to Core; Swift Observation handles the SDK's non-Sendable tracking property on MainActor. LocalCaptureRepository owns UUID datasets and metadata. Demo CaptureService remains one-shot and isolated. See ObjectCapture.md for lifecycle and storage details.
 
 ## Package semantics
 
@@ -27,7 +27,7 @@ Opening packages reads a bounded manifest and rejects a symbolic-link package/ma
 
 ## Demo boundary
 
-Use the shared Demo schemes or `--demo-mode`. Mac demo mode injects a demo device and uses a separate library location. Try Demo Project also works in ordinary mode and creates a manifest explicitly marked `demo`. Reconstruction controls appear only for those demo projects. All simulation results are labeled, and never set a real project's reconstruction status to complete. iPhone simulator flow requires demo mode; normal mode explains that live capture is pending. Demo transfer rejects non-demo records.
+Use the shared Demo schemes or `--demo-mode`. Mac demo mode injects a demo device and uses a separate library location. Try Demo Project also works in ordinary mode and creates a manifest explicitly marked `demo`. Reconstruction controls appear only for those demo projects. All simulation results are labeled, and never set a real project's reconstruction status to complete. iPhone simulator flow requires demo mode; normal mode uses the production Object Capture flow, with support and permission checks. Demo transfer rejects non-demo records.
 
 ## Next network design
 

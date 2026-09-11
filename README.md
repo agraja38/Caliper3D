@@ -22,11 +22,13 @@ The installer verifies the DMG’s SHA-256 checksum, installs to `~/Applications
 
 ## Development status
 
-This is a working **foundation and demo release**, not yet a functioning physical object scanner.
+**Current main includes the production iPhone Object Capture pipeline and persistent captures. A complete physical scan remains unverified.** The published v1.0.0 DMG remains the foundation/demo release.
 
 Implemented: macOS Library/New Scan/Devices/Processing navigation, local project creation and photo import/opening, an adjustable RealityKit demo viewport, Settings, a simulated reconstruction job with cancellation, iPhone onboarding and demo capture/review/transfer, shared packages, schema validation and tests.
 
-Planned: real Object Capture, secure Mac–iPhone pairing and file transfer, real Mac photogrammetry, mesh cleanup/smoothing, measurements/calibration, STL export and companion installation. Unimplemented production actions are hidden or clearly explained.
+Implemented on main: live iPhone capture support/permission checks, guided RealityKit scanning, file-backed review, rename and deletion; see [Object Capture status](docs/ObjectCapture.md).
+
+Planned: secure Mac–iPhone pairing and file transfer, real Mac photogrammetry, mesh cleanup/smoothing, measurements/calibration, STL export and companion installation. Unimplemented production actions are hidden or clearly explained.
 
 ## Intended workflow
 
@@ -55,7 +57,7 @@ This runs package tests, builds the mesh contract module, and compiles both appl
 
 ## Set up Caliper3D Capture on iPhone
 
-The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **In v1.0.0, the iPhone app provides a demo workflow only.** Live camera/LiDAR capture and Mac pairing are not implemented yet.
+The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **The released v1.0.0 source provides a demo workflow. Current main also implements real Object Capture, pending physical-device validation.** Mac pairing remains unimplemented.
 
 ### Get the source
 
@@ -92,7 +94,7 @@ Demo captures are temporary metadata, reset when the app closes, and do not use 
 
 For device preparation and signing details, see [Apple’s device-running guide](https://developer.apple.com/documentation/xcode/running-your-app-on-simulated-or-physical-devices). Personal development provisioning can expire; if the app stops launching, reconnect and run it from Xcode again.
 
-The Demo scheme supplies `--demo-mode` when **Xcode launches the app**. Opening it later from the iPhone Home Screen does not supply that argument; launch through the Demo scheme to use the simulated flow. The ordinary **Caliper3DCapture** scheme explains that live capture is pending.
+The Demo scheme supplies `--demo-mode` when **Xcode launches the app**. Opening it later from the iPhone Home Screen does not supply that argument; launch through the Demo scheme to use the simulated flow. To test real capture from current main, use the ordinary **Caliper3DCapture** scheme: **New Scan → allow camera access → Start Detection → adjust the object selection → Start Capturing → Finish Scan**. Completion waits for RealityKit and then opens the saved review. Unsupported devices and Simulator show an availability explanation. Read [the device validation checklist](docs/ObjectCapture.md#verification-and-outstanding-device-run) before treating the pipeline as verified.
 
 ### Explore the Mac side
 
@@ -113,11 +115,11 @@ See [architecture](docs/Architecture.md), [environment](docs/Environment.md), [p
 
 ## Privacy
 
-No telemetry, analytics, accounts or remote processing. Imported photos retain their metadata and remain local. No camera or network services are activated in this foundation. See [Privacy](docs/Privacy.md) and [Security](SECURITY.md).
+No telemetry, analytics, accounts or remote processing. Imported photos retain their metadata and remain local. The released foundation is demo-only; current main can activate Object Capture after permission on supported iPhones. No network transfer is active. See [Privacy](docs/Privacy.md) and [Security](SECURITY.md).
 
 ## Roadmap
 
-1. Real iPhone Object Capture with compatibility, permissions, feedback and persistent review.
+1. Complete physical-device validation of the implemented iPhone Object Capture pipeline.
 2. Authenticated local transfer and RealityKit reconstruction on Mac.
 3. Non-destructive mesh cleanup and calibrated measurements.
 4. Printable STL export and safe companion setup.

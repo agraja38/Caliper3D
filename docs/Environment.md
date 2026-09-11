@@ -40,3 +40,7 @@ The checked-in project/workspace builds without XcodeGen. After editing project.
 Xcode's scheme-based generic iOS Simulator destination reported “iOS 26.5 is not installed” despite the installed SDK. An attempted official `xcodebuild -downloadPlatform iOS -architectureVariant arm64` failed with an Apple asset-catalog timeout. No SDK files or security settings were modified.
 
 Target-level compilation succeeds using `-target Caliper3DCapture -sdk iphonesimulator` (the verification script uses this). The resulting app was installed and launched using simctl on the already installed iOS 26.3 iPhone 17 Pro Simulator. Onboarding and the complete demo flow were manually verified there. Scheme-based Run may require repairing/downloading the platform in Xcode Settings → Components; this does not block source compilation.
+
+## Session 2 SDK reinspection
+
+Reverified the iOS 26.5 Swift interface and compiled the production driver. All requested ObjectCaptureSession lifecycle APIs and update properties are present at iOS 17; ObjectCapturePointCloudView.showShotLocations requires iOS 18 and feedback.objectNotDetected requires iOS 17.4. Tracking lacks the Sendable conformance required by cameraTrackingUpdates in this SDK; Swift Observation on the MainActor property avoids crossing that boundary. No unsafe conformance or warning suppression was added. See docs/ObjectCapture.md for the complete decision record. The paired physical phone was not used because the iPhone target has no configured signing team.
