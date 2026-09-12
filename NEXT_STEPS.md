@@ -6,9 +6,9 @@ Use main only; push each tested checkpoint. Preserve any uncommitted physical-de
 
 The user has passed the real Object Capture gate with a mouse scan, successful Finish, review metadata and relaunch persistence. Checkpoint A now supplies tested version-1 frames, manifests, incremental integrity and receiver ordering. Read docs/TransferProtocol.md before extending it.
 
-Implement the Network.framework TLS identity boundary next: native persistent identities protected by Keychain, mutual peer proof, cryptographically bound verification codes with both-side confirmation, pinned reconnect and Forget Device. The exact first-pair transcript/exporter or commitment construction and native certificate creation remain unresolved implementation tasks. Do not treat ReceiveProtocol.authorizePeer or a wire pairingConfirmation as authentication. Do not open a production listener with permissive trust.
+TLS identity/Keychain/pairing components now exist, with real TLS loopback tests. Integrate them through a coordinator that routes commitment/reveal/confirmation messages, checks hello fingerprints against TLSBinding, requires both user confirmations, persists trust before authorizing transfer, and supports pinned reconnect/Forget Device. Add pairing rate limits and a single active pairing UI. Validate Keychain persistence in signed apps; the current tests only cover in-memory material and trust serialization.
 
-Then add NWListener/Bonjour on Mac and NWBrowser on iPhone with necessary sandbox/privacy declarations, explicit connection states and bounded timeout/cancellation. The installed APIs were inspected, but no sockets or trust implementation exist yet.
+Add NWListener/Bonjour on Mac and NWBrowser on iPhone with necessary sandbox/privacy declarations, explicit states and cancellation. Keep firstPair policy limited to explicit pairing attempts. No production listener is active. Security composition review and denial/background behavior remain required before exposing the listener.
 
 ## 2. Stream verified datasets into persistent staging
 

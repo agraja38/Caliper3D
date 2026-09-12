@@ -2,11 +2,13 @@
 
 Updated 2026-09-12. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
 
-## Session 3 checkpoint A
+## Session 3 protocol and security checkpoints
 
 Implemented within Caliper3DTransfer: stable version-1 JSON control schemas, bounded length-prefixed control/binary frames, incremental decoder with terminal error handling, practical dataset limits, safe-path and filesystem-collision validation, checked aggregate sizes, canonical manifest identity, incremental SHA-256/length verification, receiver ordering and resume identity models. All fixtures are synthetic.
 
-Not yet implemented: TLS identity creation, cryptographically bound pairing, Keychain trust, Bonjour/listener, real source enumeration, streaming disk receiver, persistent resume, project finalization or production transfer UI. ReceiveProtocol's local authorization hook is not authentication; ResumeDescriptor is not a persistent journal. No physical network transfer has been performed. See docs/TransferProtocol.md and NEXT_STEPS.md.
+Additional security components implemented: native P-256/X.509 identity creation, Keychain identity/trust repositories, TLS 1.3 mutual certificate verification and pinning, TLS exporter binding, commitment/reveal pairing with both-side confirmation, and bounded TLSChannel. Loopback TLS tests passed for matching exporter/code, payload delivery and pin mismatch rejection. Signed-app Keychain persistence and production pairing UI are unverified.
+
+Not yet implemented: production Bonjour/listener orchestration, pairing coordinator/UI and rate limits, real source enumeration, streaming disk receiver, persistent resume, project finalization or production transfer UI. ReceiveProtocol's local authorization hook is not authentication; ResumeDescriptor is not a persistent journal. No physical network transfer has been performed. See docs/TransferProtocol.md and NEXT_STEPS.md.
 
 The checkout was clean at session start and no personal signing configuration was changed. Version and release remain unchanged.
 
@@ -23,6 +25,8 @@ The checkout was clean at session start and no personal signing configuration wa
 - Production review with preview, name/date/count/size, Ready to send and Save for Later. Real transfer is not offered; demo transfer remains separate.
 
 ## Verification
+
+Security checkpoint: ./Scripts/verify.sh passed with 93 tests (43 Core, 49 Transfer, 1 Installer), macOS and iOS Simulator builds. All 49 Transfer tests passed with complete concurrency diagnostics, including two real TLS loopback tests. Unsigned iPhoneOS compilation passed. No Swift warnings were introduced; Xcode emitted its standard unused AppIntents metadata notice. This does not verify Bonjour, signed-app Keychain relaunch persistence or a physical capture transfer.
 
 Session 3 checkpoint A: ./Scripts/verify.sh passed with 81 tests (43 Core, 37 Transfer, 1 Installer), Mac and iOS Simulator builds. All 37 Transfer tests also passed with complete strict-concurrency diagnostics. Unsigned iPhoneOS compilation passed. No new physical transfer or UI runtime verification is claimed; existing demo regression tests passed.
 
@@ -43,7 +47,7 @@ No additional physical tests are claimed: permission denial/recovery, full-pass 
 
 ## Partial / limitations
 
-- Captured production data is ready for future UUID-based transfer integration; no network implementation was added.
+- Captured production data is ready for future UUID-based transfer integration. TLS primitives are implemented, but the source/staging pipeline and app network orchestration are not.
 - Same-session pause/resume is implemented; resume of a saved incomplete session is not supported. Checkpoints do not imply capture-session restoration.
 - A process kill during finishing/metadata commit can leave an incomplete dataset. Files are preserved; automatic recovery/cleanup is deliberately absent.
 - Apple cameraTrackingUpdates triggers a missing-Sendable SDK warning; tracking is safely observed through its MainActor observable property instead. See docs/ObjectCapture.md.
@@ -53,6 +57,6 @@ No additional physical tests are claimed: permission denial/recovery, full-pass 
 
 ## Unimplemented / outside Session 2
 
-Authenticated pairing, Bonjour/Network.framework transfer, real Mac photogrammetry, mesh cleanup/smoothing, calibrated measurement, STL export, companion provisioning/installation and signed/notarized distribution. Existing v1.0.0 release assets are unchanged.
+Production pairing/discovery integration, capture transfer/staging, real Mac photogrammetry, mesh cleanup/smoothing, calibrated measurement, STL export, companion provisioning/installation and signed/notarized distribution. Existing v1.0.0 release assets are unchanged.
 
 See docs/ObjectCapture.md for API decisions, storage layout, lifecycle and the exact physical-device checklist.

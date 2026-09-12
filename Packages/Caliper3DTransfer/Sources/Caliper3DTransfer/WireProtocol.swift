@@ -18,7 +18,7 @@ public enum WireError: Error, Equatable, LocalizedError {
 /// Stable JSON envelope. Payload schemas are explicit structs, never synthesized enum layouts.
 public struct ControlMessage: Codable, Equatable, Sendable {
     public enum Kind: String, Codable, Sendable {
-        case hello, helloResponse, pairingConfirmation, pairingRejected
+        case hello, helloResponse, pairingCommitment, pairingReveal, pairingConfirmation, pairingRejected
         case transferOffer, transferAccepted, transferRejected
         case fileBegin, fileComplete, transferComplete, cancel, error, ping, pong
     }
@@ -29,7 +29,7 @@ public struct ControlMessage: Codable, Equatable, Sendable {
         version = TransferPolicy.protocolVersion; self.type = type; self.payload = payload
     }
     public enum Payload: Equatable, Sendable {
-        case hello(PeerHello), confirmation(PairingConfirmation), manifest(TransferManifest)
+        case hello(PeerHello), commitment(PairingCommitment), reveal(PairingReveal), confirmation(PairingConfirmation), manifest(TransferManifest)
         case accepted(TransferAcceptance), file(FileReference), completion(TransferCompletion)
         case reason(TransferReason), empty
     }
@@ -41,6 +41,8 @@ public struct ControlMessage: Codable, Equatable, Sendable {
         type = try c.decode(Kind.self, forKey: .type)
         switch type {
         case .hello, .helloResponse: payload = .hello(try c.decode(PeerHello.self, forKey: .payload))
+        case .pairingCommitment: payload = .commitment(try c.decode(PairingCommitment.self, forKey: .payload))
+        case .pairingReveal: payload = .reveal(try c.decode(PairingReveal.self, forKey: .payload))
         case .pairingConfirmation: payload = .confirmation(try c.decode(PairingConfirmation.self, forKey: .payload))
         case .transferOffer: payload = .manifest(try c.decode(TransferManifest.self, forKey: .payload))
         case .transferAccepted: payload = .accepted(try c.decode(TransferAcceptance.self, forKey: .payload))
@@ -59,6 +61,8 @@ public struct ControlMessage: Codable, Equatable, Sendable {
         try c.encode(version, forKey: .version); try c.encode(type, forKey: .type)
         switch payload {
         case .hello(let p): try c.encode(p, forKey: .payload)
+        case .commitment(let p): try c.encode(p, forKey: .payload)
+        case .reveal(let p): try c.encode(p, forKey: .payload)
         case .confirmation(let p): try c.encode(p, forKey: .payload)
         case .manifest(let p): try c.encode(p, forKey: .payload)
         case .accepted(let p): try c.encode(p, forKey: .payload)
@@ -74,6 +78,10 @@ public struct ControlMessage: Codable, Equatable, Sendable {
         case (.hello, .hello(let p)), (.helloResponse, .hello(let p)):
             guard TransferPolicy.validText(p.name, maximum: 256), TransferPolicy.validText(p.operatingSystem, maximum: 128),
                   TransferPolicy.isSHA256(p.identityFingerprint), TransferPolicy.isSHA256(p.nonce) else { throw WireError.malformedMessage }
+        case (.pairingCommitment, .commitment(let p)):
+            guard TransferPolicy.isSHA256(p.sha256) else { throw WireError.malformedMessage }
+        case (.pairingReveal, .reveal(let p)):
+            guard TransferPolicy.isSHA256(p.nonce) else { throw WireError.malformedMessage }
         case (.pairingConfirmation, .confirmation(let p)):
             guard TransferPolicy.isSHA256(p.transcriptDigest) else { throw WireError.malformedMessage }
         case (.transferOffer, .manifest(let p)): try p.validate()
@@ -103,6 +111,14 @@ public struct PeerHello: Codable, Equatable, Sendable {
         self.name = name; self.operatingSystem = operatingSystem; self.objectCaptureSupported = objectCaptureSupported
         self.identityFingerprint = identityFingerprint; self.nonce = nonce
     }
+}
+public struct PairingCommitment: Codable, Equatable, Sendable {
+    public let sha256: String
+    public init(sha256: String) { self.sha256 = sha256 }
+}
+public struct PairingReveal: Codable, Equatable, Sendable {
+    public let nonce: String
+    public init(nonce: String) { self.nonce = nonce }
 }
 public struct PairingConfirmation: Codable, Equatable, Sendable {
     public let transcriptDigest: String

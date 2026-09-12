@@ -1,19 +1,30 @@
 # Local capture transfer protocol — version 1
 
-Session 3 checkpoint A implements transport-independent framing, control models, manifest validation, incremental integrity verification and receiver sequencing. **There is no production listener, pairing implementation, sender, staging service or transfer UI yet.** The security handshake below remains an integration requirement, not a claim that these models authenticate peers. No real Mac–iPhone transfer has been tested.
+Session 3 implements transport-independent protocol/integrity logic plus TLS, identity and pairing components. **Production discovery/listening, pairing UI, source enumeration, disk staging and capture transfer are not integrated yet.** Loopback TLS tests are not a real phone-to-Mac dataset transfer.
 
 ## Transport and security boundary
 
-Use Network.framework TLS over TCP on the same local network. Mac advertises `_caliper3d._tcp`; iPhone selects a discovered Mac. Bonjour names and all hello metadata are untrusted until authenticated. Do not enable a plaintext fallback.
+LocalTLSParameters builds Network.framework TLS 1.3 with mutual certificate proof. IdentityCertificate serializes a fixed X.509 P-256 self-issued certificate and uses Security for random keys and ECDSA SHA-256 signing; no cipher/key-exchange implementation is added. Certificates carry digitalSignature and client/server EKU, non-CA constraints and ten-year validity. SecIdentityCreate verifies the key/certificate association. Certificate serialization follows [RFC 5280](https://www.rfc-editor.org/rfc/rfc5280). These identities are for app-local pinning, not public Web PKI or Apple code signing.
 
-Required before opening a production listener:
+KeychainIdentityRepository persists the certificate/private material as a protected app-scoped Keychain item, WhenUnlockedThisDeviceOnly, non-synchronizing and using the data-protection Keychain. Corrupt or inaccessible identity material fails without silently rotating identity. KeychainTrustRepository stores at most 100 approved peers in the same protected storage. Forget removes the pin. Keychain persistence is implemented but still needs signed-app/relaunch verification; unit tests serialize trust and identity material in memory only.
 
-- Persistent per-installation identity, private keys protected by Keychain/Security. Define and test native identity/certificate creation for both platforms; this checkpoint does not generate certificates or keys.
-- Mutual TLS peer proof, TLS 1.3 minimum, and a first-pair verification code bound to both presented identities and the live cryptographic session/transcript. The exact exporter/commitment construction still needs security review and implementation; a random transmitted number or hashing self-reported hello fingerprints alone is insufficient.
-- Both devices explicitly approve the same code before trust is persisted. Pin verified identities in Keychain, reject mismatches on reconnect, and implement Forget Device on both platforms. Do not persist trust merely when TLS completes.
-- Bounded handshake timeouts, pairing attempt limits and rejection handling. Network callbacks must never call `authorizePeer` just because a `pairingConfirmation` message arrived.
+TLS verification requires one presented certificate, validates it using Security BasicX509 with that exact local anchor and disables network certificate fetching. Pinned mode rejects a fingerprint mismatch during the handshake. First-pair mode accepts a valid self-issued TLS identity **only for an explicit pairing attempt**, with no transfer authorization. Peer fingerprints are SHA-256 over actual leaf certificate DER, never Bonjour names or self-reported hello values.
 
-`ReceiveProtocol.authorizePeer(tlsFingerprint:)` is a **local integration hook**, not authentication. It only checks that the hello fingerprint agrees with the fingerprint supplied by the future secure transport. The caller must already have completed mutual authentication/pairing. Tests supplying strings to this hook test ordering only; they are not TLS or pairing security tests.
+TLSChannel reads actual peer certificate metadata and exports 32 bytes through Apple's sec_protocol_metadata_create_secret, using label `EXPORTER-Caliper3D-pairing-v1`. This is the TLS exporter defined by [RFC 8446 section 7.5](https://www.rfc-editor.org/rfc/rfc8446#section-7.5). The secret remains in memory and must never be logged/serialized. Channel startup has a 15-second timeout; outstanding read/write operations have a 180-second deadline. One reader/writer and bounded receives provide backpressure. Cancel closes the connection. Static OSLog messages omit identities, codes and key material.
+
+### First-pair protocol component
+
+PairingSession binds both certificate fingerprints, fixed phone/Mac roles, the actual TLS exporter and independently random 32-byte pairing nonces. Both sides must send their commitment before receiving a reveal:
+
+1. Context is UTF-8 `Caliper3D pairing v1\n<phone fingerprint>\n<Mac fingerprint>\n`.
+2. Commitment is SHA-256(context + role + newline + local nonce), sent as lowercase hex.
+3. After receiving the peer commitment, reveal the nonce. Reject a reveal that does not match the commitment or arrives out of order.
+4. Transcript is context + phone nonce + Mac nonce. HMAC-SHA256 keyed by the TLS exporter over `code\n` + transcript produces the code: first four bytes as big-endian UInt32 modulo 1,000,000, formatted `123 456`.
+5. Each side's explicit user confirmation sends HMAC-SHA256(exporter, `confirmation\n` + transcript). Only after local and peer confirmation does the session become approved. Pairing expires after 120 seconds and rejection clears the displayed code.
+
+This uses standard hashes/MACs and TLS channel binding, not custom encryption. Commit/reveal prevents adaptive nonce selection after seeing the peer's nonce. The short code provides approximately 20 bits of human verification, not unlimited-attempt authentication. Before production exposure add connection/attempt rate limits and enforce one active pairing UI; independent security review of the composition remains advisable. Users must compare the code on their own two devices. No approval or automatic trust may come from a Bonjour advertisement.
+
+ReceiveProtocol.authorizePeer remains a local integration hook. The future coordinator must first complete PairingSession approval (or match a stored pin on reconnect), ensure its hello fingerprint matches TLSBinding, and await Keychain persistence before granting transfer authorization. Pairing messages do not directly authorize ReceiveProtocol. Discovery, pairing UI and that coordinator are not yet implemented.
 
 ## Framing
 
@@ -31,7 +42,9 @@ Control envelope example: `{"type":"ping","version":1}`. Payload-bearing message
 | Type | Payload schema | Direction / meaning |
 | --- | --- | --- |
 | hello / helloResponse | name, operatingSystem, optional objectCaptureSupported, identityFingerprint, nonce | Sender / receiver greeting; fingerprint and nonce are 64 lowercase hex digits |
-| pairingConfirmation | transcriptDigest | Both sides; reserved for secure handshake integration |
+| pairingCommitment | sha256 | Both sides, before either nonce is revealed |
+| pairingReveal | nonce | Both sides, after receiving the peer commitment |
+| pairingConfirmation | transcriptDigest | Both explicit confirmations; field contains the exporter-bound confirmation MAC |
 | pairingRejected | optional transferID, code | Pairing refused |
 | transferOffer | TransferManifest | iPhone → Mac; full bounded manifest before any file data |
 | transferAccepted | transferID, manifestDigest, verifiedFileIndices | Mac → iPhone, only after user acceptance and disk revalidation |
@@ -89,10 +102,10 @@ Decision: the Mac project UUID equals the capture UUID for version 1, making dup
 
 ## SDK and privacy notes
 
-Inspected Xcode 26.6 iOS 26.5 Network.swiftinterface: NWBrowser Bonjour descriptors and result/state callbacks, NWListener service/newConnectionHandler, NWConnection receive(minimumIncompleteLength:maximumLength:completion:) and send(content:contentContext:isComplete:completion:), NWParameters(tls:tcp:). Security headers expose local identity, required peer authentication, minimum TLS version, verify blocks and peer-public-key metadata. No unavailable API signature was used to implement a socket.
+Inspected Xcode 26.6 iOS 26.5 Network.swiftinterface: NWBrowser Bonjour descriptors and result/state callbacks, NWListener service/newConnectionHandler, NWConnection receive(minimumIncompleteLength:maximumLength:completion:) and send(content:contentContext:isComplete:completion:), NWParameters(tls:tcp:). Security headers expose local identity, required peer authentication, minimum TLS version, verify blocks and peer-public-key metadata. SecIdentityCreate and TLS exporter signatures were also checked in Security headers. The implemented channel compiles against the installed SDK and has loopback socket tests.
 
 Before enabling networking, retain Mac App Sandbox and add only the client/server network capabilities needed by the implemented connection roles. Both apps must declare `_caliper3d._tcp` and a local-network usage explanation. iPhone already has these declarations; Mac additions remain pending with the listener. Handle denied privacy access without retry loops. Apple documents Bonjour declarations and local-network privacy, including macOS, in [TN3179](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy). No background modes or multicast entitlement were added in this checkpoint.
 
 ## Verification boundary
 
-Tests use in-memory frames and synthetic bytes only. They cover fragmentation/coalescing, bounds, malformed/version errors, safe paths/collisions, manifest totals, incremental corruption/truncation, local authorization gating, ordering, cancel/interruption and resume identity. They do not prove TLS authentication, Keychain persistence, actual disk staging/resume, or physical transfer. The user-verified mouse scan remains outside Git and has not been sent to Mac by this implementation.
+Most tests use in-memory frames and synthetic bytes. Two additional tests use real Network.framework TLS loopback connections without Bonjour advertisements. They cover fragmentation/coalescing, bounds, malformed/version errors, safe paths/collisions, manifest totals, incremental corruption/truncation, local authorization gating, ordering, cancel/interruption and resume identity. Loopback tests verify matching live TLS exporters/codes, a bounded binary payload and pinned mismatch rejection. Security identity tests verify certificate parsing/trust and private-key proof. They do not prove signed-app Keychain persistence, Bonjour, actual disk staging/resume, or physical transfer. The user-verified mouse scan remains outside Git and has not been sent to Mac by this implementation.

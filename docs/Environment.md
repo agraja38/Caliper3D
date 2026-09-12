@@ -44,3 +44,7 @@ Target-level compilation succeeds using `-target Caliper3DCapture -sdk iphonesim
 ## Session 2 SDK reinspection
 
 Reverified the iOS 26.5 Swift interface and compiled the production driver. All requested ObjectCaptureSession lifecycle APIs and update properties are present at iOS 17; ObjectCapturePointCloudView.showShotLocations requires iOS 18 and feedback.objectNotDetected requires iOS 17.4. Tracking lacks the Sendable conformance required by cameraTrackingUpdates in this SDK; Swift Observation on the MainActor property avoids crossing that boundary. No unsafe conformance or warning suppression was added. See docs/ObjectCapture.md for the complete decision record. The paired physical phone was not used because the iPhone target has no configured signing team.
+
+## Session 3 Security/Network SDK inspection
+
+Xcode 26.6/iOS 26.5 exposes SecIdentityCreate on both deployment targets, SecKey P-256/ECDSA SHA-256, data-protection Keychain items, TLS peer-auth/verify blocks and sec_protocol_metadata_create_secret. TLSChannel uses the callback-based NWConnection APIs compatible with macOS 14/iOS 17. TLS loopback tests use ephemeral generated identities and bind to 127.0.0.1; no signing identity, trust store or real scan was read or modified by those tests.
