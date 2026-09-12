@@ -1,6 +1,14 @@
 # Implementation status
 
-Updated 2026-09-11. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
+Updated 2026-09-12. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
+
+## Session 3 checkpoint A
+
+Implemented within Caliper3DTransfer: stable version-1 JSON control schemas, bounded length-prefixed control/binary frames, incremental decoder with terminal error handling, practical dataset limits, safe-path and filesystem-collision validation, checked aggregate sizes, canonical manifest identity, incremental SHA-256/length verification, receiver ordering and resume identity models. All fixtures are synthetic.
+
+Not yet implemented: TLS identity creation, cryptographically bound pairing, Keychain trust, Bonjour/listener, real source enumeration, streaming disk receiver, persistent resume, project finalization or production transfer UI. ReceiveProtocol's local authorization hook is not authentication; ResumeDescriptor is not a persistent journal. No physical network transfer has been performed. See docs/TransferProtocol.md and NEXT_STEPS.md.
+
+The checkout was clean at session start and no personal signing configuration was changed. Version and release remain unchanged.
 
 ## Implemented on main
 
@@ -15,6 +23,8 @@ Updated 2026-09-11. Main-only workflow. Public app version remains 1.0.0/build 1
 - Production review with preview, name/date/count/size, Ready to send and Save for Later. Real transfer is not offered; demo transfer remains separate.
 
 ## Verification
+
+Session 3 checkpoint A: ./Scripts/verify.sh passed with 81 tests (43 Core, 37 Transfer, 1 Installer), Mac and iOS Simulator builds. All 37 Transfer tests also passed with complete strict-concurrency diagnostics. Unsigned iPhoneOS compilation passed. No new physical transfer or UI runtime verification is claimed; existing demo regression tests passed.
 
 Baseline Scripts/verify.sh passed before major changes (19 tests and both apps).
 

@@ -1,22 +1,27 @@
 # Next steps
 
-Use main only. Read PROJECT_SPEC.md, IMPLEMENTATION_STATUS.md and docs/ObjectCapture.md. Do not rewrite history or alter v1.0.0 release/tag.
+Use main only; push each tested checkpoint. Preserve any uncommitted physical-device signing configuration. Do not change v1.0.0 or create a release/DMG.
 
-## 1. Session 3: secure local transfer
+## 1. Continue Session 3 at secure transport and pairing
 
-The user has verified a real mouse scan, successful Finish, review metadata and persistence after relaunch. Implement the versioned, bounded transfer protocol, TLS pairing and pinned trust, streamed integrity-checked staging/resume, and explicit receive/send UI. Transfer must finish as a valid .caliper3d project before any reconstruction work.
+The user has passed the real Object Capture gate with a mouse scan, successful Finish, review metadata and relaunch persistence. Checkpoint A now supplies tested version-1 frames, manifests, incremental integrity and receiver ordering. Read docs/TransferProtocol.md before extending it.
 
-Then verify permission denial/recovery, multiple passes, optional flip, point-cloud review, background/pause/resume, tracking failure, cancel, low storage and metadata write failure. Confirm that the driver releases the camera promptly and that incomplete datasets remain distinct from ready captures. Keep real images outside Git.
+Implement the Network.framework TLS identity boundary next: native persistent identities protected by Keychain, mutual peer proof, cryptographically bound verification codes with both-side confirmation, pinned reconnect and Forget Device. The exact first-pair transcript/exporter or commitment construction and native certificate creation remain unresolved implementation tasks. Do not treat ReceiveProtocol.authorizePeer or a wire pairingConfirmation as authentication. Do not open a production listener with permissive trust.
 
-## 2. Capture reliability after device evidence
+Then add NWListener/Bonjour on Mac and NWBrowser on iPhone with necessary sandbox/privacy declarations, explicit connection states and bounded timeout/cancellation. The installed APIs were inspected, but no sockets or trust implementation exist yet.
 
-- Fix any hardware lifecycle issues before widening scope.
-- Add automated iOS UI tests and exercise VoiceOver, larger Dynamic Type and iOS 17/17.4/18 availability paths.
-- Decide how to recover a dataset interrupted during finishing/metadata save. Never mark it ready solely because photos exist, or assume checkpoint files restore the capture session.
-- Consider diagnostics for unreadable captures and explicit export/recovery of incomplete data; retain safe UUID ownership checks and no blind cleanup.
+## 2. Stream verified datasets into persistent staging
 
-## 3. Session 3, only after capture is reliable
+Extend CaptureRepository with a safe UUID-only ready-dataset source boundary. Incrementally hash/read capture.json, Images and Checkpoints; reject links/special files and detect source mutation. Add receiver staging, free-space checks, incremental writes and durable verified-file journals. ResumeDescriptor currently models identity only; rehash disk files before skipping any candidate.
 
-Design authenticated local Network.framework transfer with explicit pairing, encryption, bounded messages/files, safe paths, staged completion, integrity validation and recovery. Real captures are stored by UUID under app-owned Captures/<UUID>; resolve through a validated repository boundary. Do not use Multipeer Connectivity or mix demo transport with real datasets.
+Extend LocalProjectStore for atomic .caliper3d finalization. Version-1 design uses project UUID = capture UUID, with explicit duplicate/conflict results. Preserve originals, metadata and directory structure. No photogrammetry.
 
-Mac reconstruction and mesh/STL work follow reliable capture and transfer. No release/version bump is required merely for this development milestone.
+## 3. Integrate and verify real transfer
+
+Add real peer selection/pairing and Send to Mac on iPhone; explicit Receive/Decline, progress and completed-project navigation on Mac. Keep demos injected separately. Handle background interruption without promising long-running background execution.
+
+Physically verify the saved mouse dataset: matching codes and both confirmations → explicit receive → byte/hash verification → project in Library → source retained. Relaunch both apps to verify trust, then interrupt/reconnect and validate file-level resume. No real transfer has been tested yet.
+
+## 4. Later
+
+After Session 3 passes end to end, Session 4 is Mac RealityKit photogrammetry. Capture edge cases (flip, tracking interruption, denial recovery, low storage), accessibility and minimum-OS runtime checks also remain unverified. Keep all real scans and signing assets outside Git.

@@ -22,7 +22,7 @@ The installer verifies the DMG’s SHA-256 checksum, installs to `~/Applications
 
 ## Development status
 
-**Current main includes the production iPhone Object Capture pipeline and persistent captures. A complete physical scan remains unverified.** The published v1.0.0 DMG remains the foundation/demo release.
+**Current main includes the production iPhone Object Capture pipeline and persistent captures. The user has verified a real mouse scan through review and app relaunch. Secure Mac transfer is still under development.** The published v1.0.0 DMG remains the foundation/demo release.
 
 Implemented: macOS Library/New Scan/Devices/Processing navigation, local project creation and photo import/opening, an adjustable RealityKit demo viewport, Settings, a simulated reconstruction job with cancellation, iPhone onboarding and demo capture/review/transfer, shared packages, schema validation and tests.
 
@@ -57,7 +57,7 @@ This runs package tests, builds the mesh contract module, and compiles both appl
 
 ## Set up Caliper3D Capture on iPhone
 
-The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **The released v1.0.0 source provides a demo workflow. Current main also implements real Object Capture, pending physical-device validation.** Mac pairing remains unimplemented.
+The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **The released v1.0.0 source provides a demo workflow. Current main also implements real Object Capture, with the basic physical capture workflow verified.** Mac pairing remains unimplemented.
 
 ### Get the source
 
@@ -119,7 +119,7 @@ No telemetry, analytics, accounts or remote processing. Imported photos retain t
 
 ## Roadmap
 
-1. Complete physical-device validation of the implemented iPhone Object Capture pipeline.
+1. Complete secure local transfer from the verified iPhone capture pipeline to a Mac project.
 2. Authenticated local transfer and RealityKit reconstruction on Mac.
 3. Non-destructive mesh cleanup and calibrated measurements.
 4. Printable STL export and safe companion setup.
