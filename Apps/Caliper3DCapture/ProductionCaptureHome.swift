@@ -1,7 +1,10 @@
 import SwiftUI
 import Caliper3DCore
+import Caliper3DTransfer
 
 struct ProductionCaptureHome: View {
+    let connection: ConnectionCoordinator
+    @Environment(\.scenePhase) private var scenePhase
     let repository: any CaptureRepository
     let factory: any CaptureSessionFactory
     let permission: any CameraPermissionService
@@ -39,9 +42,10 @@ struct ProductionCaptureHome: View {
             }
             .navigationTitle("Caliper3D Capture")
             .safeAreaInset(edge: .bottom) {
-                Label("Mac connection coming next", systemImage: "laptopcomputer")
+                NavigationLink { ConnectionPanel(model: connection) } label: { Label(connection.state.message, systemImage: "laptopcomputer") }
                     .font(.caption).foregroundStyle(.secondary).padding().frame(maxWidth: .infinity).background(.bar)
             }
+            .onChange(of: scenePhase) { _, phase in if phase == .background { Task { await connection.background() } } }
             .refreshable { await reload() }
             .task { await reload() }
             .fullScreenCover(isPresented: Binding(get: { scanner != nil }, set: { if !$0 { scanner = nil } }), onDismiss: { selected = pendingReview; pendingReview = nil; Task { await reload() } }) {

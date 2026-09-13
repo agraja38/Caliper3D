@@ -1,6 +1,12 @@
 # Implementation status
 
-Updated 2026-09-12. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
+Updated 2026-09-13. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
+
+## Session 3 production networking/pairing checkpoint
+
+ConnectionCoordinator now owns NWBrowser discovery, TLS-only NWListener advertisement, live hello/commitment/reveal/confirmation routing, Keychain trust, pinned reconnect and Forget Device. Both apps use a shared native ConnectionPanel; demo composition remains separate. Mac first-pair acceptance requires an explicit two-minute Pair iPhone window; iPhone Pair is explicit. One active connection/pairing UI and three attempts per minute with cooldown bound new pairing attempts. Unknown or out-of-sequence transfer messages still close the channel because transfer is not integrated yet.
+
+Mac sandbox remains enabled with the server entitlement (the Mac currently only accepts TCP connections); Bonjour/local-network usage declarations are present. Baseline verification passed before this continuation. Checkpoint verification passed: 96 tests (43 Core, 52 Transfer, 1 Installer), Mac and Simulator builds. Coordinator loopback tests verify both-confirmation trust gating, pinned reconnect/forget and forged hello rejection. No real-device pairing or Keychain relaunch verification is claimed. The paired iPhone was disconnected when checked.
 
 ## Session 3 protocol and security checkpoints
 

@@ -16,11 +16,12 @@ private enum Destination: String, CaseIterable, Identifiable {
 }
 struct WorkspaceView: View {
     let demo: Bool
+    let connection: ConnectionCoordinator
     @State private var destination: Destination? = .library
     @State private var library: LibraryModel
     @State private var jobs = ProcessingModel(service: DemoPhotogrammetryService())
-    init(demo: Bool) {
-        self.demo = demo
+    init(demo: Bool, connection: ConnectionCoordinator) {
+        self.demo = demo; self.connection = connection
         let root = URL.applicationSupportDirectory.appendingPathComponent("Caliper3D")
             .appendingPathComponent(demo ? "DemoProjects" : "Projects")
         _library = State(initialValue: LibraryModel(store: LocalProjectStore(root: root)))
@@ -64,11 +65,12 @@ struct WorkspaceView: View {
                 }
             case .newScan: welcome
             case .devices:
-                DevicesView(service: demo ? DemoDiscoveryService() : UnavailableDiscoveryService(), demo: demo)
+                if demo { DevicesView(service: DemoDiscoveryService(), demo: true) }
+                else { ConnectionPanel(model: connection) }
             case .processing: ProcessingView(model: jobs)
             }
         }
-        .task { await library.load() }
+        .task { await library.load(); if !demo { await connection.start() } }
         .onOpenURL { url in Task { await library.openProject(at: url); destination = .library } }
         .toolbar {
             ToolbarItemGroup {

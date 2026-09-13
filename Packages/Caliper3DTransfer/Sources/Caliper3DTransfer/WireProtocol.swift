@@ -104,12 +104,13 @@ public struct PeerHello: Codable, Equatable, Sendable {
     public let name: String
     public let operatingSystem: String
     public let objectCaptureSupported: Bool?
+    public let requiresPairing: Bool?
     public let identityFingerprint: String
     /// 32 cryptographically random bytes encoded as 64 lowercase hex digits; not a secret.
     public let nonce: String
-    public init(name: String, operatingSystem: String, objectCaptureSupported: Bool?, identityFingerprint: String, nonce: String) {
+    public init(name: String, operatingSystem: String, objectCaptureSupported: Bool?, identityFingerprint: String, nonce: String, requiresPairing: Bool = false) {
         self.name = name; self.operatingSystem = operatingSystem; self.objectCaptureSupported = objectCaptureSupported
-        self.identityFingerprint = identityFingerprint; self.nonce = nonce
+        self.identityFingerprint = identityFingerprint; self.nonce = nonce; self.requiresPairing = requiresPairing
     }
 }
 public struct PairingCommitment: Codable, Equatable, Sendable {

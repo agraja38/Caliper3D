@@ -25,7 +25,7 @@ targets:
   Caliper3D:
     type: application
     platform: macOS
-    sources: [Apps/Caliper3D]
+    sources: [Apps/Caliper3D, Apps/Shared]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.caliper3d.Caliper3D
@@ -36,6 +36,8 @@ targets:
     info:
       path: Apps/Caliper3D/Info.plist
       properties:
+        NSLocalNetworkUsageDescription: Caliper3D receives scans from your paired iPhone over the local network.
+        NSBonjourServices: [_caliper3d._tcp]
         CFBundleDocumentTypes:
           - CFBundleTypeName: Caliper3D Project
             CFBundleTypeRole: Editor
@@ -55,7 +57,7 @@ targets:
   Caliper3DCapture:
     type: application
     platform: iOS
-    sources: [Apps/Caliper3DCapture]
+    sources: [Apps/Caliper3DCapture, Apps/Shared]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.caliper3d.Caliper3DCapture

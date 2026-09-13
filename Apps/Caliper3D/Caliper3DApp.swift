@@ -5,9 +5,10 @@ import Caliper3DTransfer
 @main
 struct Caliper3DApp: App {
     private let demo = ProcessInfo.processInfo.arguments.contains("--demo-mode")
+    @State private var connection = ConnectionCoordinator(role: .mac, name: Host.current().localizedName ?? "Caliper3D Mac", operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString, captureSupported: nil)
     var body: some Scene {
         WindowGroup {
-            WorkspaceView(demo: demo)
+            WorkspaceView(demo: demo, connection: connection)
                 .frame(minWidth: 850, minHeight: 560)
         }
         .defaultSize(width: 1100, height: 740)

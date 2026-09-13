@@ -33,6 +33,12 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_caliper3d._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Caliper3D receives scans from your paired iPhone over the local network.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

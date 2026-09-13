@@ -11,6 +11,7 @@ struct Caliper3DCaptureApp: App {
 }
 struct CaptureRootView: View {
     let demo: Bool
+    @State private var connection = ConnectionCoordinator(role: .phone, name: UIDevice.current.name, operatingSystem: UIDevice.current.systemVersion, captureSupported: ObjectCaptureFactory().isSupported)
     @AppStorage("onboardingComplete") private var onboarded = false
     var body: some View {
         if onboarded {
@@ -18,7 +19,7 @@ struct CaptureRootView: View {
                 CaptureHomeView(demo: true, capture: DemoCaptureService(), transfer: DemoTransferService())
             } else {
                 ProductionCaptureHome(
-                    repository: LocalCaptureRepository(root: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
+                    connection: connection, repository: LocalCaptureRepository(root: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
                         .resolvingSymlinksInPath()
                         .appendingPathComponent("Library/Application Support/Caliper3D/Captures", isDirectory: true)),
                     factory: ObjectCaptureFactory(), permission: CameraAuthorization())

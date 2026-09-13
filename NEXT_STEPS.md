@@ -2,13 +2,11 @@
 
 Use main only; push each tested checkpoint. Preserve any uncommitted physical-device signing configuration. Do not change v1.0.0 or create a release/DMG.
 
-## 1. Continue Session 3 at secure transport and pairing
+## 1. Continue Session 3 at capture source and staging
 
 The user has passed the real Object Capture gate with a mouse scan, successful Finish, review metadata and relaunch persistence. Checkpoint A now supplies tested version-1 frames, manifests, incremental integrity and receiver ordering. Read docs/TransferProtocol.md before extending it.
 
-TLS identity/Keychain/pairing components now exist, with real TLS loopback tests. Integrate them through a coordinator that routes commitment/reveal/confirmation messages, checks hello fingerprints against TLSBinding, requires both user confirmations, persists trust before authorizing transfer, and supports pinned reconnect/Forget Device. Add pairing rate limits and a single active pairing UI. Validate Keychain persistence in signed apps; the current tests only cover in-memory material and trust serialization.
-
-Add NWListener/Bonjour on Mac and NWBrowser on iPhone with necessary sandbox/privacy declarations, explicit states and cancellation. Keep firstPair policy limited to explicit pairing attempts. No production listener is active. Security composition review and denial/background behavior remain required before exposing the listener.
+Production discovery, TLS coordinator and shared pairing UI are now integrated. Verify signed-app Keychain and Bonjour on hardware; the paired iPhone was disconnected. Coordinator loopback tests pass. Mac Pair iPhone opens a bounded first-pair window; normal listener policy accepts stored pins only. Transfer messages remain rejected pending the engine.
 
 ## 2. Stream verified datasets into persistent staging
 

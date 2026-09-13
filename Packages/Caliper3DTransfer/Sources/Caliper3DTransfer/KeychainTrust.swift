@@ -64,7 +64,12 @@ public struct TrustRecords: Codable, Sendable {
               peers.allSatisfy({ TransferPolicy.isSHA256($0.fingerprint) && TransferPolicy.validText($0.name, maximum: 256) }) else { throw PairingError.invalidIdentity }
     }
 }
-public actor KeychainTrustRepository {
+public protocol PeerTrustStore: Sendable {
+    func records() async throws -> TrustRecords
+    func approve(_ session: PairingSession, name: String) async throws
+    func forget(_ fingerprint: String) async throws
+}
+public actor KeychainTrustRepository: PeerTrustStore {
     private let vault: KeychainVault
     public init(vault: KeychainVault = KeychainVault()) { self.vault = vault }
     public func records() throws -> TrustRecords {

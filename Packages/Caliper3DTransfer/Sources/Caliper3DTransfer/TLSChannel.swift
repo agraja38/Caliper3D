@@ -8,11 +8,13 @@ public enum TLSPeerPolicy: Sendable {
     case firstPair
     /// The expected fingerprint must come from Keychain trust, never Bonjour/hello metadata.
     case pinned(String)
+    case trusted(Set<String>)
 }
 public enum LocalTLSParameters {
     public static func make(identity: LocalTLSIdentity, policy: TLSPeerPolicy) throws -> NWParameters {
         guard let securityIdentity = sec_identity_create(identity.identity) else { throw PairingError.invalidIdentity }
         if case .pinned(let fingerprint) = policy, !TransferPolicy.isSHA256(fingerprint) { throw PairingError.invalidIdentity }
+        if case .trusted(let fingerprints) = policy, !fingerprints.allSatisfy(TransferPolicy.isSHA256) { throw PairingError.invalidIdentity }
         let tls = NWProtocolTLS.Options()
         sec_protocol_options_set_local_identity(tls.securityProtocolOptions, securityIdentity)
         sec_protocol_options_set_min_tls_protocol_version(tls.securityProtocolOptions, .TLSv13)
@@ -25,6 +27,7 @@ public enum LocalTLSParameters {
             guard bytes.count <= 16_384 else { complete(false); return }
             let fingerprint = TransferPolicy.digest(bytes)
             if case .pinned(let expected) = policy, expected != fingerprint { complete(false); return }
+            if case .trusted(let allowed) = policy, !allowed.contains(fingerprint) { complete(false); return }
             // App identities are self-issued. Validate their structure/validity using this exact
             // certificate as the sole anchor. First-pair user verification is still mandatory.
             guard SecTrustSetPolicies(trustRef, SecPolicyCreateBasicX509()) == errSecSuccess,
