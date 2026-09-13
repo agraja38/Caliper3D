@@ -132,6 +132,6 @@ Use `main` and read [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed; see [LICEN
 
 ### Test local transfer from current main
 
-Build and run both ordinary app schemes with your own local signing setup. Keep both devices on the same local network and leave the iPhone app in the foreground. In Mac Devices choose **Pair iPhone**; on iPhone open **Connect to Mac**, choose your Mac and **Pair**. Compare the displayed code and confirm on both devices. Later connections must use the saved paired identity.
+Build and run both ordinary app schemes with your own local signing setup. Select your own development team for **both** targets in Xcode; the protected Keychain identity requires an appropriately signed build. An ad-hoc Mac build reports a signing/access error and keeps networking disabled. Keep both devices on the same local network and leave the iPhone app in the foreground. In Mac Devices choose **Pair iPhone**; on iPhone open **Connect to Mac**, choose your Mac and **Pair**. Compare the displayed code and confirm on both devices. Later connections must use the saved paired identity.
 
 Open a ready capture on iPhone and choose **Send to Mac**. Accept **Receive** in Mac Devices. Wait for verified completion, then **Open Project**. The iPhone source stays intact. If interrupted, reconnect to the paired Mac and send again; verified staged files are rehashed before they can be skipped. This source-build workflow is implemented but still awaits the real mouse transfer test; it is not part of the published v1.0.0 DMG.

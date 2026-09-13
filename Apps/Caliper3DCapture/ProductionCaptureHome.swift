@@ -42,7 +42,7 @@ struct ProductionCaptureHome: View {
             }
             .navigationTitle("Caliper3D Capture")
             .safeAreaInset(edge: .bottom) {
-                NavigationLink { ConnectionPanel(model: connection) } label: { Label(connection.state.message, systemImage: "laptopcomputer") }
+                NavigationLink { ConnectionPanel(model: connection) } label: { Label(connection.state.compactMessage, systemImage: "laptopcomputer") }
                     .font(.caption).foregroundStyle(.secondary).padding().frame(maxWidth: .infinity).background(.bar)
             }
             .onChange(of: scenePhase) { _, phase in if phase == .background { Task { await connection.background() } } }

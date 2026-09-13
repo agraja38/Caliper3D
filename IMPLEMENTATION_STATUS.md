@@ -17,9 +17,9 @@ Updated 2026-09-14. Main-only workflow. Public version remains 1.0.0/build 1; ex
 
 ## Verification
 
-Final streaming checkpoint: `./Scripts/verify.sh` passed with 112 tests (47 Core, 64 Transfer, 1 Installer), Mesh build, macOS app build and iOS Simulator compilation. Unsigned iPhoneOS compilation also passed. Complete strict-concurrency settings remain enabled; no Swift compiler warnings were introduced (only Xcode's standard unused AppIntents metadata notice).
+Final streaming checkpoint: `./Scripts/verify.sh` passed with 114 tests (47 Core, 66 Transfer, 1 Installer), Mesh build, macOS app build and iOS Simulator compilation. Unsigned iPhoneOS compilation also passed. Complete strict-concurrency settings remain enabled; no Swift compiler warnings were introduced (only Xcode's standard unused AppIntents metadata notice).
 
-All six coordinator integration tests passed, including real TLS loopback transfers with synthetic datasets, explicit decline/acceptance, project reopening, duplicate import, fully verified resume, and cancellation during a 64 MiB transfer followed by pinned reconnect and file-level resume.
+All eight coordinator integration tests passed, including real TLS loopback transfers with synthetic datasets, explicit decline/acceptance, project reopening, duplicate import, fully verified resume, and cancellation during a 64 MiB transfer followed by pinned reconnect and file-level resume.
 
 Tests use generated identities and in-memory trust; they do not prove signed-app Keychain persistence or Bonjour between physical devices. No real capture was read by automated tests.
 
@@ -29,7 +29,7 @@ Earlier Session 2 Simulator checks passed: unsupported production New Scan, full
 
 The user installed Caliper3D Capture on a supported iPhone, scanned a physical computer mouse using Object Capture, completed Finish, and saw the real capture with photo count, storage size and Ready to send. After terminating/reopening the app, the saved mouse remained in Recent Captures.
 
-No additional hardware tests are claimed. Physical pairing, matching-code confirmation, signed-app Keychain persistence after relaunch, real mouse transfer, project reopening and interrupted-transfer resume remain pending. The paired iPhone was disconnected when inspected during this continuation.
+No additional hardware tests are claimed. Physical pairing, matching-code confirmation, signed-app Keychain persistence after relaunch, real mouse transfer, project reopening and interrupted-transfer resume remain pending. The paired iPhone was disconnected when inspected during this continuation and again before final verification.
 
 ## Limitations / remaining verification
 
@@ -44,3 +44,11 @@ No additional hardware tests are claimed. Physical pairing, matching-code confir
 ## Unimplemented / out of scope
 
 Mac photogrammetry, mesh cleanup, calibrated measurement, STL export, companion provisioning/installation and signed/notarized releases. Session 4 must wait for a real verified iPhone-to-Mac capture transfer.
+
+## Runtime validation and exact blocker
+
+The isolated ad-hoc Mac build launched and displayed Devices, then failed protected Keychain access with `errSecMissingEntitlement` (OSStatus -34018). The listener stayed off. The UI now explains that a development-signed build using the developer’s own Xcode team is required; no fallback storage, certificate relaxation or sandbox removal was added. Signed-app identity/trust relaunch persistence remains unverified.
+
+A newly created iOS 26.5 Simulator passed onboarding → demo New Scan → review → simulated transfer complete, explicitly stating no data was sent. Relaunch without demo mode showed an empty production library and the correct unsupported Object Capture screen. Opening production Connect to Mac also hit the unsigned build’s protected-identity access failure. The final Simulator build displays the signing-specific guidance. These checks do not verify physical discovery or pairing.
+
+Final security review retained explicit first-pair actions, both-confirmation trust persistence, actual TLS/hello fingerprint binding, pinned reconnect, pairing limits and generation cancellation. An added live TLS test confirms an unauthenticated binary frame creates no capture/staging data. Only OSStatus diagnostics were added; no keys, codes, secrets or scan files are logged.

@@ -36,7 +36,7 @@ struct OnboardingView: View {
             TabView(selection: $page) {
                 pageView("Turn your iPhone into a 3D scanner", symbol: "viewfinder", text: "Capture an object on iPhone, then reconstruct and refine it on your Mac.").tag(0)
                 pageView("For best results", symbol: "light.max", text: "Use even lighting.\nKeep the object still.\nMove slowly and capture several angles.\nAvoid strong reflections.").tag(1)
-                pageView("Connect to your Mac", symbol: "laptopcomputer.and.iphone", text: "Caliper3D will transfer scans directly over your local network. Secure pairing is coming soon; demo mode works without a connection.").tag(2)
+                pageView("Connect to your Mac", symbol: "laptopcomputer.and.iphone", text: "Open Caliper3D on your Mac and connect both devices to the same local network. Pair by comparing the code on both screens. Demo mode works without a connection.").tag(2)
             }.tabViewStyle(.page)
             Button(page == 2 ? "Get Started" : "Continue") {
                 if page == 2 { finish() } else { withAnimation { page += 1 } }

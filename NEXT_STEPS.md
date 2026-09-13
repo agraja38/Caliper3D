@@ -6,7 +6,7 @@ Use main only; commit/push tested checkpoints. Preserve local signing and real d
 
 The protocol/security, production coordinator/UI, source capability, staging/resume and atomic project finalization are implemented. Do not redesign them. Read docs/TransferProtocol.md and run Scripts/verify.sh before changes.
 
-Run both signed apps on the same local network. Mac Devices → Pair iPhone; iPhone Connect to Mac → Pair. Compare codes and confirm on both. Relaunch both and reconnect using the saved pin to verify Keychain persistence. Resolve actual Bonjour/local-network/signing failures without weakening TLS or sandboxing.
+First configure development signing locally for both ordinary app targets. The ad-hoc Mac runtime was verified to fail protected Keychain access with OSStatus -34018; keep the protected storage design and fix signing rather than adding an insecure fallback. Then run both signed apps on the same local network. Mac Devices → Pair iPhone; iPhone Connect to Mac → Pair. Compare codes and confirm on both. Relaunch both and reconnect using the saved pin to verify Keychain persistence. Resolve actual Bonjour/local-network/signing failures without weakening TLS or sandboxing.
 
 Send the user's saved mouse capture. Mac must explicitly accept; verify real byte progress, all hashes, a valid `.caliper3d` in Library, Open Project, and the unchanged source capture on iPhone. No physical transfer is claimed yet. The iPhone was disconnected during inspection.
 

@@ -1,5 +1,6 @@
 import XCTest
 import Network
+import Security
 import Caliper3DCore
 @testable import Caliper3DTransfer
 
@@ -69,6 +70,35 @@ final class CoordinatorTests: XCTestCase {
         let records = await trust.records(); XCTAssertTrue(records.peers.isEmpty)
         await channel.close(); await mac.stop()
     }
+    func testTLSConnectionAloneCannotWriteCaptureData() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let macIdentity = try LocalTLSIdentity(material: IdentityCertificate.createMaterial())
+        let phoneIdentity = try LocalTLSIdentity(material: IdentityCertificate.createMaterial())
+        let trust = MemoryTrust()
+        let incoming = IncomingCaptureStore(root: root.appendingPathComponent("Incoming"), projects: LocalProjectStore(root: root.appendingPathComponent("Projects")))
+        let mac = ConnectionCoordinator(role: .mac, name: "Test Mac", trustStore: trust, identity: macIdentity, incomingStore: incoming)
+        await mac.start(); await mac.allowPairing()
+        try await wait { mac.discovery == .ready && mac.listeningPort != nil }
+        let channel = TLSChannel(connection: NWConnection(host: "127.0.0.1", port: try XCTUnwrap(mac.listeningPort),
+            using: try LocalTLSParameters.make(identity: phoneIdentity, policy: .firstPair)))
+        _ = try await channel.start()
+        try await channel.send(WireFrame.binary(Data([1,2,3])).encoded())
+        try await wait { if case .failed = mac.state { return true }; return false }
+        let records = await trust.records(); XCTAssertTrue(records.peers.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.path))
+        await channel.close(); await mac.stop()
+    }
+    func testKeychainFailureIsActionableAndDoesNotStartListener() async {
+        let mac = ConnectionCoordinator(role: .mac, name: "Test", operatingSystem: "Test", captureSupported: nil,
+            trustStore: MemoryTrust(), identityLoader: { throw PairingError.keychain(errSecMissingEntitlement) })
+        await mac.start()
+        guard case .failed(let reason) = mac.state else { return XCTFail() }
+        XCTAssertTrue(reason.contains("development-signed"))
+        XCTAssertNil(mac.listeningPort)
+        XCTAssertFalse(mac.pairingWindowOpen)
+        XCTAssertTrue(PairingError.keychain(errSecInteractionNotAllowed).localizedDescription.contains("Unlock"))
+    }
     func testRateLimitExpiresAndHasCooldown() {
         var gate = PairingAttemptGate(); let now = Date()
         XCTAssertTrue(gate.admit(now: now)); XCTAssertFalse(gate.admit(now: now.addingTimeInterval(1)))
@@ -128,6 +158,7 @@ extension CoordinatorTests {
         try await wait { mac.transfer == .offered }; await mac.acceptCapture()
         try await wait { phone.transfer == .completed && mac.transfer == .completed }
         library = try await projects.list(); XCTAssertEqual(library.count, 1)
+        XCTAssertTrue(mac.receivedExistingProject)
         await phone.stop(); await mac.stop()
     }
     func testLiveAllVerifiedResumeFinalizesWithoutFileFrames() async throws {

@@ -18,6 +18,10 @@ public enum DiscoveryStatus: Equatable, Sendable { case stopped, preparing, read
 public enum ConnectionStatus: Equatable, Sendable {
     case offline, connecting, exchangingIdentity, awaitingCode, savingTrust, verification(String), waitingForConfirmation(String)
     case connected(ConnectedPeer), failed(String)
+    public var compactMessage: String {
+        if case .failed = self { return "Connection needs attention" }
+        return message
+    }
     public var message: String {
         switch self {
         case .offline: "Not connected"
@@ -49,6 +53,7 @@ public final class ConnectionCoordinator {
     public private(set) var transfer: LiveTransferStatus = .idle
     public private(set) var offeredCapture: TransferManifest?
     public private(set) var receivedProject: ScanProject?
+    public private(set) var receivedExistingProject = false
     public private(set) var activeCaptureID: UUID?
     public private(set) var resumedFileCount = 0
     private let incomingStore: IncomingCaptureStore?
@@ -350,6 +355,9 @@ public final class ConnectionCoordinator {
         await disconnect(); state = .failed(Self.message(error)); if activeCaptureID != nil { transfer = .failed(Self.message(error)) }
     }
     private static func message(_ error: Error) -> String {
+        if case PairingError.keychain(let status) = error {
+            AppLog.network.error("Protected Keychain access failed with OSStatus \(status, privacy: .public)")
+        }
         if let storage = error as? IncomingCaptureError { return storage.localizedDescription }
         if let project = error as? ReceivedProjectError { return project.localizedDescription }
         if let capture = error as? CaptureSourceError { return capture.localizedDescription }
@@ -386,13 +394,17 @@ extension ConnectionCoordinator {
         guard role == .phone, case .connected = state, !transfer.isActive else { return }
         let token = generation
         activeCaptureID = captureID; resumedFileCount = 0; transfer = .preparing
-        do {
-            let value = try await PreparedCaptureTransfer.prepare(captureID: captureID, repository: repository)
-            guard generation == token else { return }
-            prepared = value; transfer = .offered
-            try await send(.init(type: .transferOffer, payload: .manifest(value.manifest)))
-            AppLog.transfer.info("Capture offered to authenticated Mac")
-        } catch { await fail(error, token: token) }
+        let preparation = Task { [self] in
+            do {
+                let value = try await PreparedCaptureTransfer.prepare(captureID: captureID, repository: repository)
+                guard generation == token else { return }
+                prepared = value; transfer = .offered
+                try await send(.init(type: .transferOffer, payload: .manifest(value.manifest)))
+                AppLog.transfer.info("Capture offered to authenticated Mac")
+            } catch { await fail(error, token: token) }
+        }
+        sendTask = preparation
+        await preparation.value
     }
     public func acceptCapture() async {
         guard role == .mac, case .connected = state, transfer == .offered,
@@ -460,7 +472,7 @@ extension ConnectionCoordinator {
             try machine.receive(.control(.init(type: .hello, payload: .hello(hello))))
             try machine.authorizePeer(tlsFingerprint: binding.peerFingerprint)
             try machine.receive(frame); receiver = machine
-            offeredCapture = manifest; activeCaptureID = manifest.captureID; receivedProject = nil; transfer = .offered
+            offeredCapture = manifest; activeCaptureID = manifest.captureID; receivedProject = nil; receivedExistingProject = false; transfer = .offered
             AppLog.transfer.info("Authenticated capture awaiting user acceptance")
             return
         }
@@ -520,6 +532,7 @@ extension ConnectionCoordinator {
         guard generation == token, var machine = receiver else { return }
         let completion = try machine.finalized(projectID: result.project.manifest.id); receiver = machine
         receivedProject = result.project; offeredCapture = nil
+        if case .duplicate = result { receivedExistingProject = true }
         try await send(.init(type: .transferComplete, payload: .completion(completion)))
         transfer = .completed
     }

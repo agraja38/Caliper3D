@@ -48,3 +48,9 @@ Reverified the iOS 26.5 Swift interface and compiled the production driver. All 
 ## Session 3 Security/Network SDK inspection
 
 Xcode 26.6/iOS 26.5 exposes SecIdentityCreate on both deployment targets, SecKey P-256/ECDSA SHA-256, data-protection Keychain items, TLS peer-auth/verify blocks and sec_protocol_metadata_create_secret. TLSChannel uses the callback-based NWConnection APIs compatible with macOS 14/iOS 17. TLS loopback tests use ephemeral generated identities and bind to 127.0.0.1; no signing identity, trust store or real scan was read or modified by those tests.
+
+## Session 3 runtime validation (2026-09-14)
+
+The current Mac and Simulator apps compile without signing. An isolated ad-hoc Mac copy with the normal sandbox/server entitlements launched, but data-protection Keychain access returned errSecMissingEntitlement (-34018). Production networking correctly remained disabled. The unsigned Simulator connection UI likewise stopped at protected identity access. This is a signing/runtime gate, not a successful pairing test. Use a development-signed build of both targets with your own locally selected team for physical network testing; no personal signing setup was changed or committed.
+
+An isolated iOS 26.5 Simulator passed the demo onboarding/capture/review/transfer flow and ordinary unsupported-capture flow. The paired physical iPhone was disconnected during checks. All transfer datasets used by tests are generated temporary synthetic data.

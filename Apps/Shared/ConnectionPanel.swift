@@ -27,7 +27,7 @@ struct ConnectionPanel: View {
                 Section("Capture Transfer") {
                     TransferProgressContent(model: model)
                     if let project = model.receivedProject, model.transfer == .completed, let openProject {
-                        Text("\(project.manifest.name) received")
+                        Text(model.receivedExistingProject ? "\(project.manifest.name) is already in your Library. Its files match this capture." : "\(project.manifest.name) received")
                         Button("Open Project") { openProject(project) }
                     }
                 }
@@ -120,6 +120,9 @@ struct TransferProgressContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(model.transfer.message)
+            if model.resumedFileCount > 0 {
+                Text("\(model.resumedFileCount) previously verified files reused after checking their contents.").font(.caption).foregroundStyle(.secondary)
+            }
             if case .transferring(let bytes, let total, let file) = model.transfer {
                 ProgressView(value: Double(bytes), total: Double(max(1, total)))
                 Text("\(ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)) of \(ByteCountFormatter.string(fromByteCount: total, countStyle: .file)) · \(Int(Double(bytes) / Double(max(1, total)) * 100))%")

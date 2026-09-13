@@ -8,7 +8,11 @@ public enum PairingError: Error, Equatable, LocalizedError {
         switch self {
         case .expired: "Pairing expired. Start again on both devices."
         case .rejected: "Pairing was declined. No new device has been trusted."
-        case .keychain: "Caliper3D could not access its protected device identity. Unlock the device and try again."
+        case .keychain(let status) where status == errSecMissingEntitlement:
+            "This build cannot access its protected device identity. Run a development-signed build with your own team selected in Xcode. Ad-hoc builds cannot use this Keychain configuration."
+        case .keychain(let status) where status == errSecInteractionNotAllowed:
+            "Unlock the device and reopen Caliper3D to access its protected identity."
+        case .keychain: "Caliper3D could not access its protected device identity. Check signing and Keychain access, then try again."
         default: "Device verification failed. Close this connection and pair again."
         }
     }

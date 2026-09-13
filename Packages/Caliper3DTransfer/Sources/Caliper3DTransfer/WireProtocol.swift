@@ -9,7 +9,7 @@ public enum WireError: Error, Equatable, LocalizedError {
         case .unsafePath, .invalidManifest: "The capture file list is invalid or exceeds transfer limits."
         case .integrityMismatch: "A capture file did not pass verification. Reconnect to retry."
         case .cancelled: "Transfer cancelled. The original capture is unchanged."
-        case .timedOut: "Transfer interrupted. Reconnect to continue from verified files."
+        case .timedOut, .truncatedFrame: "Transfer interrupted. Reconnect to continue from verified files."
         default: "The other device sent an invalid transfer message. The connection must be closed."
         }
     }
