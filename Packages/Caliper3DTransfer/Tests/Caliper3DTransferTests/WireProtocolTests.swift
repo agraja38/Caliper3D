@@ -101,6 +101,9 @@ final class TransferManifestTests: XCTestCase {
             XCTAssertThrowsError(try fixtureManifest(files: files).validate())
         }
     }
+    func testExcessivePathDepthRejectedBeforeWriting() {
+        XCTAssertFalse(TransferPolicy.isSafeRelativePath("Images/" + Array(repeating: "a", count: 65).joined(separator: "/")))
+    }
     func testOnlyDatasetRootsAllowed() {
         let files = fixtureManifest().files + [TransferFile(path: "private/key", bytes: 0, sha256: TransferPolicy.digest(Data()))]
         XCTAssertThrowsError(try fixtureManifest(files: files).validate())

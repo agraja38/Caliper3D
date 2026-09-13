@@ -12,6 +12,8 @@ public enum TransferPolicy {
     public static let maximumFileBytes = CaptureSourceLimits.maximumFileBytes
     public static let maximumTotalBytes = CaptureSourceLimits.maximumTotalBytes
     public static let maximumPathBytes = 1024
+    public static let maximumPathComponents = 64
+    public static let maximumCaptureMetadataBytes = 128 * 1024
     public static let maximumComponentBytes = 255
     public static func digest(_ data: Data) -> String { hex(SHA256.hash(data: data)) }
     static func hex<D: Sequence>(_ digest: D) -> String where D.Element == UInt8 {
@@ -26,7 +28,7 @@ public enum TransferPolicy {
     }
     public static func isSafeRelativePath(_ path: String) -> Bool {
         let parts = path.split(separator: "/", omittingEmptySubsequences: false)
-        return !path.isEmpty && path.utf8.count <= maximumPathBytes
+        return !path.isEmpty && path.utf8.count <= maximumPathBytes && parts.count <= maximumPathComponents
             && path.utf8.elementsEqual(path.precomposedStringWithCanonicalMapping.utf8)
             && !path.contains("\\") && !path.contains(":") && !path.contains("%")
             && !path.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains)
@@ -99,7 +101,7 @@ public struct TransferManifest: Codable, Equatable, Sendable {
                 parts.removeLast()
             }
         }
-        guard files.contains(where: { $0.path == "capture.json" && $0.bytes > 0 && $0.bytes <= Int64(TransferPolicy.maximumControlBytes) }),
+        guard files.contains(where: { $0.path == "capture.json" && $0.bytes > 0 && $0.bytes <= Int64(TransferPolicy.maximumCaptureMetadataBytes) }),
               sum == totalBytes, images == imageCount else { throw WireError.invalidManifest }
     }
     /// Protocol-defined sorted JSON representation; array order determines stable file indices.

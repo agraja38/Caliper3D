@@ -35,3 +35,5 @@ Capture datasets use a separate schema-1 capture.json under app-private Applicat
 
 ## Transfer foundation (Session 3 checkpoint A)
 Caliper3DTransfer owns the version-1 control/binary framing, resource policy, capture transfer manifest and incremental integrity/receiver state logic. Network/TLS, trust storage, staging and UI adapters remain separate boundaries. TLSChannel, Keychain identity/trust and exporter-bound commit/reveal pairing components are implemented; production orchestration and staging/UI remain pending. See docs/TransferProtocol.md for the implemented wire schemas and pending security/disk integration. The planned received project UUID equals the capture UUID, with explicit duplicate handling and no overwrite. No production listener may start until secure pairing is implemented.
+
+Received projects retain a sourceCaptureDigest for duplicate/conflict detection. Finalization copies verified Incoming staging data into a hidden project package, revalidates it, and atomically moves it into the Library. Project UUID equals capture UUID; existing packages are never silently overwritten.

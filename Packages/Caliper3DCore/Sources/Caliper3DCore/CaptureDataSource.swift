@@ -15,10 +15,11 @@ public enum CaptureSourceLimits {
     public static let maximumFileBytes: Int64 = 16 * 1024 * 1024 * 1024
     public static let maximumTotalBytes: Int64 = 128 * 1024 * 1024 * 1024
 }
-public struct CaptureSourceFile: Sendable {
+public struct CaptureSourceFile: Sendable, Equatable {
     public let path: String
     public let bytes: Int64
     public let sha256: String
+    public init(path: String, bytes: Int64, sha256: String) { self.path = path; self.bytes = bytes; self.sha256 = sha256 }
 }
 public struct CaptureSourceDescription: Sendable {
     public let record: CaptureRecord
@@ -70,7 +71,7 @@ actor LocalCaptureDataSource: CaptureDataSource {
                 itemCount += 1
                 guard itemCount <= CaptureSourceLimits.maximumFiles * 2 else { throw CaptureSourceError.limitExceeded }
                 let path = prefix.isEmpty ? url.lastPathComponent : prefix + "/" + url.lastPathComponent
-                guard path.utf8.count <= 1024 else { throw CaptureSourceError.limitExceeded }
+                guard path.utf8.count <= 1024, path.split(separator: "/").count <= 64 else { throw CaptureSourceError.limitExceeded }
                 let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey, .isRegularFileKey])
                 guard values.isSymbolicLink != true else { throw CaptureStorageError.unsafePath }
                 if prefix.isEmpty {

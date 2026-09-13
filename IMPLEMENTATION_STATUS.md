@@ -70,3 +70,7 @@ No additional physical tests are claimed: permission denial/recovery, full-pass 
 Production pairing/discovery integration, capture transfer/staging, real Mac photogrammetry, mesh cleanup/smoothing, calibrated measurement, STL export, companion provisioning/installation and signed/notarized distribution. Existing v1.0.0 release assets are unchanged.
 
 See docs/ObjectCapture.md for API decisions, storage layout, lifecycle and the exact physical-device checklist.
+
+## Receiver storage checkpoint
+
+Implemented IncomingCaptureStore with bounded streamed file writes, SHA-256 verification, atomic verified-file promotion, durable resume journals and disk-space checks. Resume rehashes every candidate file; incomplete files restart from zero. LocalProjectStore now finalizes verified datasets through an atomic project move, preserving source files and distinguishing exact duplicates from UUID conflicts. These storage APIs are tested but not yet connected to the production TLS/UI transfer flow. Verification passed: 47 Core tests, 61 Transfer tests, Installer test, macOS and iOS Simulator builds. No physical pairing, transfer or resume test has been performed.

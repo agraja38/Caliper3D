@@ -23,3 +23,7 @@ Physically verify the saved mouse dataset: matching codes and both confirmations
 ## 4. Later
 
 After Session 3 passes end to end, Session 4 is Mac RealityKit photogrammetry. Capture edge cases (flip, tracking interruption, denial recovery, low storage), accessibility and minimum-OS runtime checks also remain unverified. Keep all real scans and signing assets outside Git.
+
+## Immediate continuation after receiver storage
+
+Wire IncomingCaptureStore and PreparedCaptureTransfer into the existing authenticated ConnectionCoordinator, including explicit offer acceptance, real byte progress, cancellation and completion acknowledgement. Then integrate production review/Devices UI and test the complete loopback path before physical iPhone–Mac validation. Storage/finalization tests already pass; do not rebuild that architecture.

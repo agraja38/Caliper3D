@@ -38,6 +38,7 @@ public struct ScanManifest: Codable, Equatable, Identifiable, Sendable {
     public var units: LengthUnit
     public var dimensions: Dimensions?
     public var meshStatistics: MeshStatistics?
+    public var sourceCaptureDigest: String?
     public init(id: UUID = UUID(), name: String, captureMethod: CaptureMethod, imageCount: Int = 0,
                 sourceDevice: SourceDevice? = nil) {
         self.id = id; self.name = name; self.captureMethod = captureMethod
@@ -49,6 +50,9 @@ public struct ScanManifest: Codable, Equatable, Identifiable, Sendable {
         guard schemaVersion == Self.currentSchemaVersion else { throw ProjectError.unsupportedSchema(schemaVersion) }
         guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, imageCount >= 0,
               modifiedAt >= createdAt else { throw ProjectError.invalidManifest }
+        if let digest = sourceCaptureDigest {
+            guard digest.utf8.count == 64, digest.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else { throw ProjectError.invalidManifest }
+        }
         if let d = dimensions {
             guard [d.width, d.height, d.depth].allSatisfy({ $0.isFinite && $0 > 0 }) else {
                 throw ProjectError.invalidManifest
