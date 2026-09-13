@@ -2,6 +2,10 @@
 
 Updated 2026-09-13. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
 
+## Session 3 capture source checkpoint
+
+Ready capture source capability, bounded indexed reads, incremental hashes, expected-root/symlink checks and mutation detection are implemented. New captures record actual source-device metadata; legacy captures remain transferable with unknown historical device details explicitly represented. PreparedCaptureTransfer builds the version-1 manifest and uses a stable capture UUID transfer key. No real scan files were read or added to Git. Verification passed: 102 tests (47 Core, 54 Transfer, 1 Installer), Mac and iOS Simulator builds.
+
 ## Session 3 production networking/pairing checkpoint
 
 ConnectionCoordinator now owns NWBrowser discovery, TLS-only NWListener advertisement, live hello/commitment/reveal/confirmation routing, Keychain trust, pinned reconnect and Forget Device. Both apps use a shared native ConnectionPanel; demo composition remains separate. Mac first-pair acceptance requires an explicit two-minute Pair iPhone window; iPhone Pair is explicit. One active connection/pairing UI and three attempts per minute with cooldown bound new pairing attempts. Unknown or out-of-sequence transfer messages still close the channel because transfer is not integrated yet.

@@ -33,6 +33,7 @@ private actor RepositoryStub: CaptureRepository {
     func library() -> CaptureLibrary { CaptureLibrary() }
     func rename(_ id: UUID, name: String) throws -> CaptureRecord { throw CaptureStorageError.invalidMetadata }
     func delete(_ id: UUID) {}
+    func prepareSource(_ id: UUID) throws -> any CaptureDataSource { throw CaptureSourceError.invalidRead }
     func previewJPEG(_ id: UUID) -> Data? { nil }
 }
 private actor DelayedPermission: CameraPermissionService {

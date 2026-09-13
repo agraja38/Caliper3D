@@ -1,15 +1,16 @@
 import Foundation
 import CryptoKit
+import Caliper3DCore
 
 public enum TransferPolicy {
     public static let protocolVersion = 1
     public static let bonjourType = "_caliper3d._tcp"
     public static let maximumControlBytes = 4 * 1024 * 1024
-    public static let chunkBytes = 256 * 1024
+    public static let chunkBytes = CaptureSourceLimits.chunkBytes
     public static let receiveBytes = chunkBytes
-    public static let maximumFiles = 10_000
-    public static let maximumFileBytes: Int64 = 16 * 1024 * 1024 * 1024
-    public static let maximumTotalBytes: Int64 = 128 * 1024 * 1024 * 1024
+    public static let maximumFiles = CaptureSourceLimits.maximumFiles
+    public static let maximumFileBytes = CaptureSourceLimits.maximumFileBytes
+    public static let maximumTotalBytes = CaptureSourceLimits.maximumTotalBytes
     public static let maximumPathBytes = 1024
     public static let maximumComponentBytes = 255
     public static func digest(_ data: Data) -> String { hex(SHA256.hash(data: data)) }
@@ -45,8 +46,8 @@ public struct TransferFile: Codable, Equatable, Sendable {
 public struct TransferSource: Codable, Equatable, Sendable {
     public let name: String
     public let operatingSystem: String
-    public let objectCaptureSupported: Bool
-    public init(name: String, operatingSystem: String, objectCaptureSupported: Bool) {
+    public let objectCaptureSupported: Bool?
+    public init(name: String, operatingSystem: String, objectCaptureSupported: Bool?) {
         self.name = name; self.operatingSystem = operatingSystem; self.objectCaptureSupported = objectCaptureSupported
     }
 }
@@ -72,7 +73,7 @@ public struct TransferManifest: Codable, Equatable, Sendable {
         guard TransferPolicy.validText(name, maximum: 480), createdAt.utf8.count <= 32,
               createdAt.hasSuffix("Z"), ISO8601DateFormatter().date(from: createdAt) != nil,
               TransferPolicy.validText(source.name, maximum: 256), TransferPolicy.validText(source.operatingSystem, maximum: 128),
-              source.objectCaptureSupported, imageCount > 0, imageCount <= TransferPolicy.maximumFiles,
+              source.objectCaptureSupported != false, imageCount > 0, imageCount <= TransferPolicy.maximumFiles,
               !files.isEmpty, files.count <= TransferPolicy.maximumFiles,
               totalBytes > 0, totalBytes <= TransferPolicy.maximumTotalBytes else { throw WireError.invalidManifest }
         var keys = Set<String>(); var sum: Int64 = 0; var images = 0

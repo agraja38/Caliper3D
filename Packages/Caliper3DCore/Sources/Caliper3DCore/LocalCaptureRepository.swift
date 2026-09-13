@@ -4,15 +4,16 @@ import ImageIO
 /// App-private, UUID-only storage. No operations follow symlinks within a capture tree.
 public actor LocalCaptureRepository: CaptureRepository {
     private let root: URL
+    private let sourceDevice: CaptureSourceDevice?
     private let files = FileManager.default
     private let availableBytes: @Sendable (URL) throws -> Int64
     /// A small startup reserve, not a promise that a complete scan will fit.
     public static let startupReserve: Int64 = 100 * 1024 * 1024
-    public init(root: URL, availableBytes: @escaping @Sendable (URL) throws -> Int64 = { url in
+    public init(root: URL, sourceDevice: CaptureSourceDevice? = nil, availableBytes: @escaping @Sendable (URL) throws -> Int64 = { url in
         let attributes = try FileManager.default.attributesOfFileSystem(forPath: url.path)
         return (attributes[.systemFreeSize] as? NSNumber)?.int64Value ?? 0
     }) {
-        self.root = root; self.availableBytes = availableBytes
+        self.root = root; self.sourceDevice = sourceDevice; self.availableBytes = availableBytes
     }
     public func allocate(name: String) throws -> CaptureDirectories {
         let name = try validatedName(name)
@@ -24,7 +25,8 @@ public actor LocalCaptureRepository: CaptureRepository {
         for child in ["Images", "Checkpoints"] {
             try files.createDirectory(at: folder.appendingPathComponent(child), withIntermediateDirectories: false)
         }
-        let record = CaptureRecord(id: id, name: name, imageCount: 0, isDemo: false)
+        var record = CaptureRecord(id: id, name: name, imageCount: 0, isDemo: false)
+        record.sourceDevice = sourceDevice
         try encode(record).write(to: folder.appendingPathComponent("capture.json"), options: .atomic)
         let destination = root.appendingPathComponent(id.uuidString)
         try files.moveItem(at: folder, to: destination)
@@ -81,6 +83,13 @@ public actor LocalCaptureRepository: CaptureRepository {
         _ = try read(id)
         _ = try inspect(folder) // reject links anywhere, including checkpoint trees
         try files.removeItem(at: folder)
+    }
+    public func prepareSource(_ id: UUID) throws -> any CaptureDataSource {
+        let record = try read(id)
+        let folder = try owned(id)
+        let stats = try inspect(folder)
+        guard record.status == .ready, stats.images == record.imageCount, stats.bytes == record.totalBytes else { throw CaptureStorageError.invalidMetadata }
+        return LocalCaptureDataSource(root: folder, record: record)
     }
     public func previewJPEG(_ id: UUID) throws -> Data? {
         guard try read(id).status == .ready else { return nil }

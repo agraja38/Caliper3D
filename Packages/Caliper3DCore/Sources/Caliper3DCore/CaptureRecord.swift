@@ -12,6 +12,7 @@ public struct CaptureRecord: Identifiable, Codable, Equatable, Sendable {
     public var modifiedAt: Date?
     public var totalBytes: Int64?
     public var status: CaptureStatus?
+    public var sourceDevice: CaptureSourceDevice?
     public init(id: UUID = UUID(), name: String, imageCount: Int, isDemo: Bool) {
         self.id = id; self.name = name; self.imageCount = imageCount; self.isDemo = isDemo
         if !isDemo {
@@ -48,6 +49,7 @@ public protocol CaptureRepository: Sendable {
     func rename(_ id: UUID, name: String) async throws -> CaptureRecord
     func delete(_ id: UUID) async throws
     func previewJPEG(_ id: UUID) async throws -> Data?
+    func prepareSource(_ id: UUID) async throws -> any CaptureDataSource
 }
 public enum CaptureStorageError: Error, LocalizedError, Equatable {
     case invalidMetadata, unsafePath, insufficientSpace, noImages, invalidName, alreadyCompleted

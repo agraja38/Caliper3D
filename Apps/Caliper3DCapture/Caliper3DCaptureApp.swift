@@ -21,7 +21,8 @@ struct CaptureRootView: View {
                 ProductionCaptureHome(
                     connection: connection, repository: LocalCaptureRepository(root: URL(fileURLWithPath: NSHomeDirectory(), isDirectory: true)
                         .resolvingSymlinksInPath()
-                        .appendingPathComponent("Library/Application Support/Caliper3D/Captures", isDirectory: true)),
+                        .appendingPathComponent("Library/Application Support/Caliper3D/Captures", isDirectory: true),
+                        sourceDevice: CaptureSourceDevice(name: UIDevice.current.name, operatingSystem: UIDevice.current.systemVersion, objectCaptureSupported: ObjectCaptureFactory().isSupported)),
                     factory: ObjectCaptureFactory(), permission: CameraAuthorization())
             }
         } else { OnboardingView { onboarded = true } }

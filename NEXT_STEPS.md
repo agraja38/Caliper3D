@@ -2,7 +2,7 @@
 
 Use main only; push each tested checkpoint. Preserve any uncommitted physical-device signing configuration. Do not change v1.0.0 or create a release/DMG.
 
-## 1. Continue Session 3 at capture source and staging
+## 1. Continue Session 3 at durable staging and transfer
 
 The user has passed the real Object Capture gate with a mouse scan, successful Finish, review metadata and relaunch persistence. Checkpoint A now supplies tested version-1 frames, manifests, incremental integrity and receiver ordering. Read docs/TransferProtocol.md before extending it.
 
@@ -10,7 +10,7 @@ Production discovery, TLS coordinator and shared pairing UI are now integrated. 
 
 ## 2. Stream verified datasets into persistent staging
 
-Extend CaptureRepository with a safe UUID-only ready-dataset source boundary. Incrementally hash/read capture.json, Images and Checkpoints; reject links/special files and detect source mutation. Add receiver staging, free-space checks, incremental writes and durable verified-file journals. ResumeDescriptor currently models identity only; rehash disk files before skipping any candidate.
+CaptureRepository.prepareSource and PreparedCaptureTransfer now implement safe UUID-only enumeration, hashing and bounded indexed reads. New captures record source-device metadata; older captures explicitly preserve unknown metadata. Add receiver staging, free-space checks, incremental writes and durable verified-file journals. ResumeDescriptor currently models identity only; rehash disk files before skipping any candidate.
 
 Extend LocalProjectStore for atomic .caliper3d finalization. Version-1 design uses project UUID = capture UUID, with explicit duplicate/conflict results. Preserve originals, metadata and directory structure. No photogrammetry.
 
