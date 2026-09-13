@@ -22,13 +22,15 @@ The installer verifies the DMG’s SHA-256 checksum, installs to `~/Applications
 
 ## Development status
 
-**Current main includes the production iPhone Object Capture pipeline and persistent captures. The user has verified a real mouse scan through review and app relaunch. Secure Mac transfer is still under development.** The published v1.0.0 DMG remains the foundation/demo release.
+**Current main includes the production iPhone Object Capture pipeline and persistent captures. The user has verified a real mouse scan through review and app relaunch. Secure local transfer is implemented and passes synthetic TLS loopback tests; physical pairing and mouse transfer remain pending.** The published v1.0.0 DMG remains the foundation/demo release.
 
 Implemented: macOS Library/New Scan/Devices/Processing navigation, local project creation and photo import/opening, an adjustable RealityKit demo viewport, Settings, a simulated reconstruction job with cancellation, iPhone onboarding and demo capture/review/transfer, shared packages, schema validation and tests.
 
 Implemented on main: live iPhone capture support/permission checks, guided RealityKit scanning, file-backed review, rename and deletion; see [Object Capture status](docs/ObjectCapture.md).
 
-Planned: secure Mac–iPhone pairing and file transfer, real Mac photogrammetry, mesh cleanup/smoothing, measurements/calibration, STL export and companion installation. Unimplemented production actions are hidden or clearly explained.
+Implemented on main: Bonjour discovery, explicit secure pairing, streamed capture transfer, verified resumable Mac staging and project creation. See [transfer protocol and verification status](docs/TransferProtocol.md).
+
+Planned: real Mac photogrammetry, mesh cleanup/smoothing, measurements/calibration, STL export and companion installation. Unimplemented production actions are hidden or clearly explained.
 
 ## Intended workflow
 
@@ -38,7 +40,7 @@ The iPhone is the capture device; the Mac handles heavy processing. Original cap
 
 ## Build and try
 
-Requirements: a Mac with Xcode (verified with Xcode 26.6 / Swift 6.3.3). Deployment targets: macOS 14+, iOS 17+. A compatible physical iPhone will be required for future real Object Capture; no iPhone is required for demo development.
+Requirements: a Mac with Xcode (verified with Xcode 26.6 / Swift 6.3.3). Deployment targets: macOS 14+, iOS 17+. A compatible physical iPhone will be required for real Object Capture; no iPhone is required for demo development.
 
 1. Clone the repository and check out `main`.
 2. Open `Caliper3D.xcworkspace` in Xcode.
@@ -57,7 +59,7 @@ This runs package tests, builds the mesh contract module, and compiles both appl
 
 ## Set up Caliper3D Capture on iPhone
 
-The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **The released v1.0.0 source provides a demo workflow. Current main also implements real Object Capture, with the basic physical capture workflow verified.** Mac pairing remains unimplemented.
+The iPhone companion is built from source using Xcode; the Mac DMG and terminal installer do not install it. **The released v1.0.0 source provides a demo workflow. Current main also implements real Object Capture, with the basic physical capture workflow verified.** Main includes Mac pairing and capture transfer; their physical-device validation is still pending.
 
 ### Get the source
 
@@ -127,3 +129,9 @@ No telemetry, analytics, accounts or remote processing. Imported photos retain t
 ## Contributing and license
 
 Use `main` and read [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed; see [LICENSE](LICENSE).
+
+### Test local transfer from current main
+
+Build and run both ordinary app schemes with your own local signing setup. Keep both devices on the same local network and leave the iPhone app in the foreground. In Mac Devices choose **Pair iPhone**; on iPhone open **Connect to Mac**, choose your Mac and **Pair**. Compare the displayed code and confirm on both devices. Later connections must use the saved paired identity.
+
+Open a ready capture on iPhone and choose **Send to Mac**. Accept **Receive** in Mac Devices. Wait for verified completion, then **Open Project**. The iPhone source stays intact. If interrupted, reconnect to the paired Mac and send again; verified staged files are rehashed before they can be skipped. This source-build workflow is implemented but still awaits the real mouse transfer test; it is not part of the published v1.0.0 DMG.

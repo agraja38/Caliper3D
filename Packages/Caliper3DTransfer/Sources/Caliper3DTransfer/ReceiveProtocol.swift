@@ -84,7 +84,7 @@ public struct ReceiveProtocol: Sendable {
     public mutating func interrupt() { active = nil; state = .interrupted }
 }
 
-/// Journal identity helper only. Disk persistence and mandatory rehashing belong to the future staging service.
+/// Journal identity helper only. IncomingCaptureStore provides disk persistence and mandatory rehashing.
 public struct ResumeDescriptor: Codable, Equatable, Sendable {
     public let transferID: UUID
     public let captureID: UUID

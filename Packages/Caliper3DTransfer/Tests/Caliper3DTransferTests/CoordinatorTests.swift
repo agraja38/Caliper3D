@@ -1,5 +1,6 @@
 import XCTest
 import Network
+import Caliper3DCore
 @testable import Caliper3DTransfer
 
 private actor MemoryTrust: PeerTrustStore {
@@ -75,5 +76,100 @@ final class CoordinatorTests: XCTestCase {
         XCTAssertTrue(gate.admit(now: now.addingTimeInterval(6)))
         XCTAssertFalse(gate.admit(now: now.addingTimeInterval(9)))
         XCTAssertTrue(gate.admit(now: now.addingTimeInterval(61)))
+    }
+}
+
+
+extension CoordinatorTests {
+    func paired(incoming: IncomingCaptureStore) async throws -> (ConnectionCoordinator, ConnectionCoordinator) {
+        let phone = ConnectionCoordinator(role: .phone, name: "Synthetic Phone", trustStore: MemoryTrust(), identity: try LocalTLSIdentity(material: IdentityCertificate.createMaterial()))
+        let mac = ConnectionCoordinator(role: .mac, name: "Synthetic Mac", trustStore: MemoryTrust(), identity: try LocalTLSIdentity(material: IdentityCertificate.createMaterial()), incomingStore: incoming)
+        await mac.start(); await phone.start(); await mac.allowPairing()
+        try await wait { mac.discovery == .ready && mac.listeningPort != nil }
+        await phone.connect(endpoint: .hostPort(host: "127.0.0.1", port: try XCTUnwrap(mac.listeningPort)), expectedFingerprint: nil)
+        try await wait { if case .verification = phone.state, case .verification = mac.state { return true }; return false }
+        await phone.confirm(); await mac.confirm()
+        try await wait { if case .connected = phone.state, case .connected = mac.state { return true }; return false }
+        return (phone, mac)
+    }
+    func dataset(_ root: URL, chunks: Int = 4) async throws -> (LocalCaptureRepository, UUID) {
+        let repository = LocalCaptureRepository(root: root.appendingPathComponent("Phone"), sourceDevice: .init(name: "Synthetic Phone", operatingSystem: "Test", objectCaptureSupported: true))
+        let allocation = try await repository.allocate(name: "Synthetic Mouse")
+        try Data([1,2,3]).write(to: allocation.checkpoints.appendingPathComponent("points"))
+        let url = allocation.images.appendingPathComponent("image.heic")
+        FileManager.default.createFile(atPath: url.path, contents: nil)
+        let handle = try FileHandle(forWritingTo: url)
+        for _ in 0..<chunks { try handle.write(contentsOf: Data(repeating: 42, count: TransferPolicy.chunkBytes)) }
+        try handle.close(); _ = try await repository.complete(allocation.id)
+        return (repository, allocation.id)
+    }
+    func testLiveTransferRequiresAcceptanceThenCommitsAndAcknowledges() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let projects = LocalProjectStore(root: root.appendingPathComponent("Projects"))
+        let incoming = IncomingCaptureStore(root: root.appendingPathComponent("Incoming"), projects: projects)
+        let (phone, mac) = try await paired(incoming: incoming)
+        let (repository, id) = try await dataset(root)
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }
+        var library = try await projects.list(); XCTAssertTrue(library.isEmpty)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("Incoming").path))
+        await mac.declineCapture()
+        try await wait { phone.transfer == .declined }
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }
+        await mac.acceptCapture()
+        try await wait { phone.transfer == .completed && mac.transfer == .completed }
+        library = try await projects.list(); XCTAssertEqual(library.map(\.id), [id])
+        XCTAssertEqual(library.first?.manifest.reconstructionState, .notStarted)
+        let source = try await repository.prepareSource(id); _ = try await source.describe()
+        // A second offer on the same trusted connection returns an existing exact dataset safely.
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }; await mac.acceptCapture()
+        try await wait { phone.transfer == .completed && mac.transfer == .completed }
+        library = try await projects.list(); XCTAssertEqual(library.count, 1)
+        await phone.stop(); await mac.stop()
+    }
+    func testLiveAllVerifiedResumeFinalizesWithoutFileFrames() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let projects = LocalProjectStore(root: root.appendingPathComponent("Projects"))
+        let incomingURL = root.appendingPathComponent("Incoming")
+        let oldStore = IncomingCaptureStore(root: incomingURL, projects: projects)
+        let (repository, id) = try await dataset(root)
+        let prepared = try await PreparedCaptureTransfer.prepare(captureID: id, repository: repository)
+        _ = try await oldStore.prepare(prepared.manifest)
+        for index in prepared.manifest.files.indices { try await IncomingStoreTests().send(prepared, index: index, store: oldStore) }
+        try await oldStore.cancel()
+        let (phone, mac) = try await paired(incoming: IncomingCaptureStore(root: incomingURL, projects: projects))
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }; await mac.acceptCapture()
+        try await wait { phone.transfer == .completed && mac.transfer == .completed }
+        XCTAssertEqual(phone.resumedFileCount, prepared.manifest.files.count)
+        await phone.stop(); await mac.stop()
+    }
+    func testLiveCancelMidFileThenPinnedReconnectResumesVerifiedFiles() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let projects = LocalProjectStore(root: root.appendingPathComponent("Projects"))
+        let incoming = IncomingCaptureStore(root: root.appendingPathComponent("Incoming"), projects: projects)
+        let (phone, mac) = try await paired(incoming: incoming)
+        let pin = try XCTUnwrap(phone.trustedPeers.first?.fingerprint)
+        let (repository, id) = try await dataset(root, chunks: 256)
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }; await mac.acceptCapture()
+        try await wait { if case .transferring(let bytes, let total, _) = mac.transfer { return bytes > 1_000_000 && bytes < total }; return false }
+        await phone.cancelTransfer()
+        try await wait { if case .failed = mac.state { return true }; return false }
+        var library = try await projects.list(); XCTAssertTrue(library.isEmpty)
+        await phone.connect(endpoint: .hostPort(host: "127.0.0.1", port: try XCTUnwrap(mac.listeningPort)), expectedFingerprint: pin)
+        try await wait { if case .connected = phone.state, case .connected = mac.state { return true }; return false }
+        await phone.sendCapture(id, repository: repository)
+        try await wait { mac.transfer == .offered }; await mac.acceptCapture()
+        try await wait { phone.transfer == .completed && mac.transfer == .completed }
+        XCTAssertGreaterThan(phone.resumedFileCount, 0)
+        library = try await projects.list(); XCTAssertEqual(library.count, 1)
+        _ = try await repository.prepareSource(id)
+        await phone.stop(); await mac.stop()
     }
 }

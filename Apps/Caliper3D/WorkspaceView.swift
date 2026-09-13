@@ -66,11 +66,13 @@ struct WorkspaceView: View {
             case .newScan: welcome
             case .devices:
                 if demo { DevicesView(service: DemoDiscoveryService(), demo: true) }
-                else { ConnectionPanel(model: connection) }
+                else { ConnectionPanel(model: connection) { project in library.selection = project; destination = .library } }
             case .processing: ProcessingView(model: jobs)
             }
         }
         .task { await library.load(); if !demo { await connection.start() } }
+        .onChange(of: connection.offeredCapture?.transferID) { _, id in if id != nil { destination = .devices } }
+        .onChange(of: connection.receivedProject?.manifest.id) { _, id in if id != nil { Task { await library.load() } } }
         .onOpenURL { url in Task { await library.openProject(at: url); destination = .library } }
         .toolbar {
             ToolbarItemGroup {

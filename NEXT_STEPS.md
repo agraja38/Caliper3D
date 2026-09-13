@@ -1,29 +1,21 @@
 # Next steps
 
-Use main only; push each tested checkpoint. Preserve any uncommitted physical-device signing configuration. Do not change v1.0.0 or create a release/DMG.
+Use main only; commit/push tested checkpoints. Preserve local signing and real datasets. Do not change v1.0.0 or publish a release/DMG.
 
-## 1. Continue Session 3 at durable staging and transfer
+## 1. Finish Session 3 validation
 
-The user has passed the real Object Capture gate with a mouse scan, successful Finish, review metadata and relaunch persistence. Checkpoint A now supplies tested version-1 frames, manifests, incremental integrity and receiver ordering. Read docs/TransferProtocol.md before extending it.
+The protocol/security, production coordinator/UI, source capability, staging/resume and atomic project finalization are implemented. Do not redesign them. Read docs/TransferProtocol.md and run Scripts/verify.sh before changes.
 
-Production discovery, TLS coordinator and shared pairing UI are now integrated. Verify signed-app Keychain and Bonjour on hardware; the paired iPhone was disconnected. Coordinator loopback tests pass. Mac Pair iPhone opens a bounded first-pair window; normal listener policy accepts stored pins only. Transfer messages remain rejected pending the engine.
+Run both signed apps on the same local network. Mac Devices → Pair iPhone; iPhone Connect to Mac → Pair. Compare codes and confirm on both. Relaunch both and reconnect using the saved pin to verify Keychain persistence. Resolve actual Bonjour/local-network/signing failures without weakening TLS or sandboxing.
 
-## 2. Stream verified datasets into persistent staging
+Send the user's saved mouse capture. Mac must explicitly accept; verify real byte progress, all hashes, a valid `.caliper3d` in Library, Open Project, and the unchanged source capture on iPhone. No physical transfer is claimed yet. The iPhone was disconnected during inspection.
 
-CaptureRepository.prepareSource and PreparedCaptureTransfer now implement safe UUID-only enumeration, hashing and bounded indexed reads. New captures record source-device metadata; older captures explicitly preserve unknown metadata. Add receiver staging, free-space checks, incremental writes and durable verified-file journals. ResumeDescriptor currently models identity only; rehash disk files before skipping any candidate.
+## 2. Exercise physical interruption and reliability
 
-Extend LocalProjectStore for atomic .caliper3d finalization. Version-1 design uses project UUID = capture UUID, with explicit duplicate/conflict results. Preserve originals, metadata and directory structure. No photogrammetry.
+Cancel or interrupt an in-progress transfer, reconnect, send again and confirm verified files are rehashed/skipped. Also test Mac decline, duplicate capture, changed UUID-conflicting dataset, permission denial, insufficient disk and iPhone background behavior. Loopback tests cover core ordering and file-level resume; hardware remains the gate.
 
-## 3. Integrate and verify real transfer
+Keep incomplete Incoming data for retries. Consider an explicit safe cleanup UI for abandoned incoming/hidden project staging in a later hardening pass, without deleting recoverable captures automatically.
 
-Add real peer selection/pairing and Send to Mac on iPhone; explicit Receive/Decline, progress and completed-project navigation on Mac. Keep demos injected separately. Handle background interruption without promising long-running background execution.
+## 3. After the real transfer gate
 
-Physically verify the saved mouse dataset: matching codes and both confirmations → explicit receive → byte/hash verification → project in Library → source retained. Relaunch both apps to verify trust, then interrupt/reconnect and validate file-level resume. No real transfer has been tested yet.
-
-## 4. Later
-
-After Session 3 passes end to end, Session 4 is Mac RealityKit photogrammetry. Capture edge cases (flip, tracking interruption, denial recovery, low storage), accessibility and minimum-OS runtime checks also remain unverified. Keep all real scans and signing assets outside Git.
-
-## Immediate continuation after receiver storage
-
-Wire IncomingCaptureStore and PreparedCaptureTransfer into the existing authenticated ConnectionCoordinator, including explicit offer acceptance, real byte progress, cancellation and completion acknowledgement. Then integrate production review/Devices UI and test the complete loopback path before physical iPhone–Mac validation. Storage/finalization tests already pass; do not rebuild that architecture.
+Session 4: Mac RealityKit Photogrammetry reconstruction. Do not begin until a real dataset has been securely received, verified, persisted and reopened. Capture edge cases, minimum-OS runtime and accessibility checks also remain pending.

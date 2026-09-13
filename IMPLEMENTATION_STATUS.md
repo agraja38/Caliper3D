@@ -1,76 +1,46 @@
 # Implementation status
 
-Updated 2026-09-13. Main-only workflow. Public app version remains 1.0.0/build 1; no new release, tag change or DMG in Session 2.
+Updated 2026-09-14. Main-only workflow. Public version remains 1.0.0/build 1; existing release/tag/DMG unchanged. No personal signing configuration or real scan data was added.
 
-## Session 3 capture source checkpoint
+## Implemented
 
-Ready capture source capability, bounded indexed reads, incremental hashes, expected-root/symlink checks and mutation detection are implemented. New captures record actual source-device metadata; legacy captures remain transferable with unknown historical device details explicitly represented. PreparedCaptureTransfer builds the version-1 manifest and uses a stable capture UUID transfer key. No real scan files were read or added to Git. Verification passed: 102 tests (47 Core, 54 Transfer, 1 Installer), Mac and iOS Simulator builds.
-
-## Session 3 production networking/pairing checkpoint
-
-ConnectionCoordinator now owns NWBrowser discovery, TLS-only NWListener advertisement, live hello/commitment/reveal/confirmation routing, Keychain trust, pinned reconnect and Forget Device. Both apps use a shared native ConnectionPanel; demo composition remains separate. Mac first-pair acceptance requires an explicit two-minute Pair iPhone window; iPhone Pair is explicit. One active connection/pairing UI and three attempts per minute with cooldown bound new pairing attempts. Unknown or out-of-sequence transfer messages still close the channel because transfer is not integrated yet.
-
-Mac sandbox remains enabled with the server entitlement (the Mac currently only accepts TCP connections); Bonjour/local-network usage declarations are present. Baseline verification passed before this continuation. Checkpoint verification passed: 96 tests (43 Core, 52 Transfer, 1 Installer), Mac and Simulator builds. Coordinator loopback tests verify both-confirmation trust gating, pinned reconnect/forget and forged hello rejection. No real-device pairing or Keychain relaunch verification is claimed. The paired iPhone was disconnected when checked.
-
-## Session 3 protocol and security checkpoints
-
-Implemented within Caliper3DTransfer: stable version-1 JSON control schemas, bounded length-prefixed control/binary frames, incremental decoder with terminal error handling, practical dataset limits, safe-path and filesystem-collision validation, checked aggregate sizes, canonical manifest identity, incremental SHA-256/length verification, receiver ordering and resume identity models. All fixtures are synthetic.
-
-Additional security components implemented: native P-256/X.509 identity creation, Keychain identity/trust repositories, TLS 1.3 mutual certificate verification and pinning, TLS exporter binding, commitment/reveal pairing with both-side confirmation, and bounded TLSChannel. Loopback TLS tests passed for matching exporter/code, payload delivery and pin mismatch rejection. Signed-app Keychain persistence and production pairing UI are unverified.
-
-Not yet implemented: production Bonjour/listener orchestration, pairing coordinator/UI and rate limits, real source enumeration, streaming disk receiver, persistent resume, project finalization or production transfer UI. ReceiveProtocol's local authorization hook is not authentication; ResumeDescriptor is not a persistent journal. No physical network transfer has been performed. See docs/TransferProtocol.md and NEXT_STEPS.md.
-
-The checkout was clean at session start and no personal signing configuration was changed. Version and release remain unchanged.
-
-## Implemented on main
-
-- Session 1 native Mac and iPhone shells, four shared packages, versioned Mac project storage/import, demo viewport/jobs, Settings and injected demos remain intact.
-- Production iPhone RealityKit Object Capture driver and full-screen ObjectCaptureView, using a live MainActor lifecycle boundary rather than the one-shot demo capture method.
-- Authoritative support check before session construction; Simulator refuses real capture. Testable camera authorization with denied/restricted handling and Settings action.
-- Detection, bounding-box selection/reset, guided capture, actual shot counts, feedback/tracking, completed-pass choices, optional flip and paused point-cloud coverage review.
-- Mac-oriented over-capture configuration and a unique empty checkpoint directory; no competing camera pipeline.
-- Completion waits for Apple's completed state, then inspects files and saves metadata. Storage failures are separate from camera errors; failed metadata saves can retry.
-- Persistent UUID capture repository, actual file counts/size, atomic metadata, safe rename, confirmed targeted deletion, bounded thumbnails and legacy demo decoding.
-- Persistent ready/incomplete libraries; corrupt packages are reported without hiding healthy ones. Cancel/failure preserves incomplete data. Background pause and explicit resume within the same live session.
-- Production review with preview, name/date/count/size, Ready to send and Save for Later. Real transfer is not offered; demo transfer remains separate.
+- Native Mac Library/New Scan/Devices/Processing, project storage/photo import, Settings and injected demo viewport/jobs. Native iPhone onboarding and isolated simulator/demo capture/review/transfer remain available.
+- Production iPhone Object Capture: authoritative support check, camera permission, live MainActor session, detection/selection, guided capture, actual shots/feedback, additional passes, optional flip/point-cloud review, finish-to-persistent-review, safe UUID storage, rename and confirmed deletion. Incomplete data is preserved.
+- Version-1 bounded JSON/binary framing, safe paths and collision checks, practical dataset limits, incremental SHA-256, explicit receiver ordering.
+- P-256/X.509 installation identities, protected Keychain identity/trust, TLS 1.3 mutual authentication, certificate pinning, TLS exporter-bound commitment/reveal pairing, both-side confirmation and Forget Device.
+- Production NWListener/Bonjour on Mac and NWBrowser on iPhone. First pairing requires explicit Pair iPhone window on Mac and Pair on iPhone; normal reconnect requires stored pins. One active connection/UI, bounded attempts/cooldown and timeouts. Mac sandbox and local-network privacy declarations retained.
+- READY capture source capability resolved only by UUID, expected-root/symlink checks, bounded indexed reads, incremental hashes and mutation detection. New captures record actual source-device metadata; older captures retain explicitly unknown historical details.
+- Incoming staging, free-space checks, incremental verified writes, durable manifest-bound journal, rehash-before-resume, restart unfinished files from zero, safe changed-manifest invalidation.
+- Live authenticated transfer offers and explicit Mac Receive/Decline, binary streaming, byte progress, cancellation, final verification and completion acknowledgement. Source scans remain on iPhone.
+- Atomic LocalProjectStore finalization into `<capture UUID>.caliper3d`, preserving capture files and `.notStarted` reconstruction. Exact duplicates reuse the existing project; changed datasets conflict without overwrite.
+- Production saved-review Send to Mac, destination connection UI, Mac receiving status and Open Project/Library integration.
 
 ## Verification
 
-Security checkpoint: ./Scripts/verify.sh passed with 93 tests (43 Core, 49 Transfer, 1 Installer), macOS and iOS Simulator builds. All 49 Transfer tests passed with complete concurrency diagnostics, including two real TLS loopback tests. Unsigned iPhoneOS compilation passed. No Swift warnings were introduced; Xcode emitted its standard unused AppIntents metadata notice. This does not verify Bonjour, signed-app Keychain relaunch persistence or a physical capture transfer.
+Final streaming checkpoint: `./Scripts/verify.sh` passed with 112 tests (47 Core, 64 Transfer, 1 Installer), Mesh build, macOS app build and iOS Simulator compilation. Unsigned iPhoneOS compilation also passed. Complete strict-concurrency settings remain enabled; no Swift compiler warnings were introduced (only Xcode's standard unused AppIntents metadata notice).
 
-Session 3 checkpoint A: ./Scripts/verify.sh passed with 81 tests (43 Core, 37 Transfer, 1 Installer), Mac and iOS Simulator builds. All 37 Transfer tests also passed with complete strict-concurrency diagnostics. Unsigned iPhoneOS compilation passed. No new physical transfer or UI runtime verification is claimed; existing demo regression tests passed.
+All six coordinator integration tests passed, including real TLS loopback transfers with synthetic datasets, explicit decline/acceptance, project reopening, duplicate import, fully verified resume, and cancellation during a 64 MiB transfer followed by pinned reconnect and file-level resume.
 
-Baseline Scripts/verify.sh passed before major changes (19 tests and both apps).
+Tests use generated identities and in-memory trust; they do not prove signed-app Keychain persistence or Bonjour between physical devices. No real capture was read by automated tests.
 
-Final ./Scripts/verify.sh passed: 43 Core tests, 6 Transfer tests and 1 Installer test (50 total, zero failures), Mesh package build, macOS app build and iOS Simulator app compilation. Core also passed all 43 tests with -strict-concurrency=complete. Unsigned iPhoneOS compilation passed. These compile checks do not verify camera hardware. Final verification reported no Swift compiler warnings; the device build may emit the standard unused AppIntents metadata notice.
+Earlier Session 2 Simulator checks passed: unsupported production New Scan, full demo capture/review/simulated transfer, synthetic persistent review/rename/relaunch and deletion confirmation. These are not physical network tests.
 
-Simulator runtime checks performed:
-- Ordinary app → New Scan → unsupported screen, without creating an ObjectCaptureSession or requesting camera access.
-- Demo app → New Scan → simulated capture → review → simulated transfer complete.
-- A labeled synthetic storage fixture → persistent review/preview/count/size → rename → Simulator restart/relaunch → renamed capture retained → delete confirmation shown and dismissed. This is storage/UI verification, not a real scan.
+## Physical capture gate: PASSED (user-reported)
 
-## Physical capture verification: PASSED (user-reported at Session 3 start)
+The user installed Caliper3D Capture on a supported iPhone, scanned a physical computer mouse using Object Capture, completed Finish, and saw the real capture with photo count, storage size and Ready to send. After terminating/reopening the app, the saved mouse remained in Recent Captures.
 
-The user installed and launched Caliper3D Capture on a supported physical iPhone, scanned a computer mouse with real Object Capture, completed Finish, and saw Capture Review with the real capture, photo count, storage size and Ready to send. After terminating and reopening the app, the mouse capture remained in Recent Captures. This confirms the basic capture-to-persistent-review hardware gate.
+No additional hardware tests are claimed. Physical pairing, matching-code confirmation, signed-app Keychain persistence after relaunch, real mouse transfer, project reopening and interrupted-transfer resume remain pending. The paired iPhone was disconnected when inspected during this continuation.
 
-No additional physical tests are claimed: permission denial/recovery, full-pass detection, additional passes, flip, interruption recovery, low storage, depth quality and network transfer remain unverified. Session 3 began with a clean checkout and no local signing diff; personal signing settings and scan data are not committed.
+## Limitations / remaining verification
 
-## Partial / limitations
+- Network and storage integration passes synthetic loopback tests; real same-network Bonjour/privacy/signing/Keychain behavior still needs validation on both devices.
+- Transfers require foreground iPhone use. Backgrounding closes networking and preserves verified Mac staging; reopen/reconnect and send again. No background-transfer promise.
+- One active peer/transfer at a time. Source selection uses the connected paired Mac; disconnect to choose another. No automatic acceptance or deletion.
+- Finalization copies the dataset and reserves disk for that copy. Incomplete staging is retained for retry; no automatic expiry. Process death can leave a hidden project staging folder; automatic orphan cleanup is not implemented.
+- Saved incomplete Object Capture sessions cannot resume after relaunch. Camera permission recovery, flip/additional passes, thermal/low-storage and minimum-OS/accessibility hardware checks remain pending.
+- Owned filesystem checks defend the app-private storage boundary; they are not a guarantee against a malicious concurrent writer with equivalent filesystem access.
+- Existing Mac library limitations remain: no general project rename/delete/bookmarks/migration; corrupt packages can prevent library loading.
 
-- Captured production data is ready for future UUID-based transfer integration. TLS primitives are implemented, but the source/staging pipeline and app network orchestration are not.
-- Same-session pause/resume is implemented; resume of a saved incomplete session is not supported. Checkpoints do not imply capture-session restoration.
-- A process kill during finishing/metadata commit can leave an incomplete dataset. Files are preserved; automatic recovery/cleanup is deliberately absent.
-- Apple cameraTrackingUpdates triggers a missing-Sendable SDK warning; tracking is safely observed through its MainActor observable property instead. See docs/ObjectCapture.md.
-- File counting trusts recognized nonempty files produced by Object Capture; this is not a general hostile-image import pipeline. Owned-path/symlink checks are not a guarantee against a malicious concurrent filesystem writer outside the app-private model.
-- Minimum OS runtime, VoiceOver, large Dynamic Type and real thermal/storage-pressure tests remain pending. Simulator preview/rename checks used synthetic data only.
-- Existing Mac library limitations remain: no general project rename/delete/bookmarks or migrations, and corrupt Mac packages can prevent library loading. Mac code was not redesigned.
+## Unimplemented / out of scope
 
-## Unimplemented / outside Session 2
-
-Production pairing/discovery integration, capture transfer/staging, real Mac photogrammetry, mesh cleanup/smoothing, calibrated measurement, STL export, companion provisioning/installation and signed/notarized distribution. Existing v1.0.0 release assets are unchanged.
-
-See docs/ObjectCapture.md for API decisions, storage layout, lifecycle and the exact physical-device checklist.
-
-## Receiver storage checkpoint
-
-Implemented IncomingCaptureStore with bounded streamed file writes, SHA-256 verification, atomic verified-file promotion, durable resume journals and disk-space checks. Resume rehashes every candidate file; incomplete files restart from zero. LocalProjectStore now finalizes verified datasets through an atomic project move, preserving source files and distinguishing exact duplicates from UUID conflicts. These storage APIs are tested but not yet connected to the production TLS/UI transfer flow. Verification passed: 47 Core tests, 61 Transfer tests, Installer test, macOS and iOS Simulator builds. No physical pairing, transfer or resume test has been performed.
+Mac photogrammetry, mesh cleanup, calibrated measurement, STL export, companion provisioning/installation and signed/notarized releases. Session 4 must wait for a real verified iPhone-to-Mac capture transfer.

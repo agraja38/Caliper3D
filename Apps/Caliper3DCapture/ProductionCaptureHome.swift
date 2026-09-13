@@ -57,7 +57,7 @@ struct ProductionCaptureHome: View {
                 }
             }
             .sheet(item: $selected, onDismiss: { Task { await reload() } }) { record in
-                SavedCaptureReview(record: record, repository: repository)
+                SavedCaptureReview(record: record, repository: repository, connection: connection)
             }
             .alert("Capture storage", isPresented: Binding(get: { error != nil }, set: { if !$0 { error = nil } })) {
                 Button("OK") { error = nil }
@@ -84,6 +84,7 @@ struct CaptureRow: View {
 struct SavedCaptureReview: View {
     @State var record: CaptureRecord
     let repository: any CaptureRepository
+    let connection: ConnectionCoordinator
     @Environment(\.dismiss) private var dismiss
     @State private var preview: Data?
     @State private var name = ""
@@ -105,15 +106,24 @@ struct SavedCaptureReview: View {
                         Text("\(record.imageCount) \(record.imageCount == 1 ? "photo" : "photos") captured").font(.headline)
                         Text(ByteCountFormatter.string(fromByteCount: record.totalBytes ?? 0, countStyle: .file))
                         Label("Ready to send", systemImage: "checkmark.circle").foregroundStyle(.green)
-                        Text("Mac connection coming next. Your capture is saved on this iPhone.").foregroundStyle(.secondary)
+                        if case .connected(let peer) = connection.state {
+                            Text("Destination: \(peer.name)").foregroundStyle(.secondary)
+                            Button("Send to Mac", systemImage: "arrow.up.right") {
+                                Task { await connection.sendCapture(record.id, repository: repository) }
+                            }.buttonStyle(.borderedProminent).disabled(connection.transfer.isActive)
+                        } else {
+                            Text("Open Caliper3D on your Mac and connect both devices to the same local network.").foregroundStyle(.secondary)
+                            NavigationLink("Connect to Mac") { ConnectionPanel(model: connection) }
+                        }
+                        if connection.activeCaptureID == record.id { TransferProgressContent(model: connection) }
                     } else {
                         Label("Incomplete capture", systemImage: "exclamationmark.circle")
                         Text("The scan did not finish. Any images and checkpoints remain on this iPhone. Restarting a saved incomplete session is not supported yet.")
                             .foregroundStyle(.secondary)
                     }
                     Button("Save for Later") { dismiss() }.buttonStyle(.borderedProminent)
-                    Button("Rename", systemImage: "pencil") { name = record.name; renaming = true }
-                    Button("Delete Capture", systemImage: "trash", role: .destructive) { deleting = true }
+                    Button("Rename", systemImage: "pencil") { name = record.name; renaming = true }.disabled(connection.transfer.isActive)
+                    Button("Delete Capture", systemImage: "trash", role: .destructive) { deleting = true }.disabled(connection.transfer.isActive)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(24)
             }
             .navigationTitle("Capture Review").navigationBarTitleDisplayMode(.inline)

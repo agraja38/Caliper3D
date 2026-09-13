@@ -1,6 +1,6 @@
 # Local capture transfer protocol — version 1
 
-Session 3 implements transport-independent protocol/integrity logic plus TLS, identity and pairing components. **Production discovery/listening, pairing UI, source enumeration, disk staging and capture transfer are not integrated yet.** Loopback TLS tests are not a real phone-to-Mac dataset transfer.
+Session 3 integrates the version-1 protocol, TLS/pairing, production Bonjour/UI, source streaming, durable staging/resume and atomic project finalization. Synthetic TLS loopback transfers pass; physical iPhone-to-Mac transfer and signed-app Keychain persistence remain unverified.
 
 ## Transport and security boundary
 
@@ -22,9 +22,9 @@ PairingSession binds both certificate fingerprints, fixed phone/Mac roles, the a
 4. Transcript is context + phone nonce + Mac nonce. HMAC-SHA256 keyed by the TLS exporter over `code\n` + transcript produces the code: first four bytes as big-endian UInt32 modulo 1,000,000, formatted `123 456`.
 5. Each side's explicit user confirmation sends HMAC-SHA256(exporter, `confirmation\n` + transcript). Only after local and peer confirmation does the session become approved. Pairing expires after 120 seconds and rejection clears the displayed code.
 
-This uses standard hashes/MACs and TLS channel binding, not custom encryption. Commit/reveal prevents adaptive nonce selection after seeing the peer's nonce. The short code provides approximately 20 bits of human verification, not unlimited-attempt authentication. Before production exposure add connection/attempt rate limits and enforce one active pairing UI; independent security review of the composition remains advisable. Users must compare the code on their own two devices. No approval or automatic trust may come from a Bonjour advertisement.
+This uses standard hashes/MACs and TLS channel binding, not custom encryption. Commit/reveal prevents adaptive nonce selection after seeing the peer's nonce. The short code provides approximately 20 bits of human verification, not unlimited-attempt authentication. The coordinator enforces connection/attempt rate limits and one active pairing UI. Users must compare the code on their own two devices. No approval or automatic trust may come from a Bonjour advertisement.
 
-ReceiveProtocol.authorizePeer remains a local integration hook. The future coordinator must first complete PairingSession approval (or match a stored pin on reconnect), ensure its hello fingerprint matches TLSBinding, and await Keychain persistence before granting transfer authorization. Pairing messages do not directly authorize ReceiveProtocol. Discovery, pairing UI and that coordinator are not yet implemented.
+ReceiveProtocol.authorizePeer remains a local integration hook. The coordinator first completes PairingSession approval (or match a stored pin on reconnect), ensure its hello fingerprint matches TLSBinding, and awaits Keychain persistence before granting transfer authorization. Pairing messages do not directly authorize ReceiveProtocol. The production coordinator owns this boundary.
 
 ## Framing
 
@@ -62,7 +62,7 @@ TransferManifest fields: version, transferID, captureID, name, createdAt (ISO-86
 
 Central TransferPolicy bounds: 10,000 files, 16 GiB per file, 128 GiB per dataset, 1,024 UTF-8 bytes per relative path and 255 per component. The complete manifest must also fit the 4 MiB control limit, with envelope headroom. These are upper bounds, not preallocated buffers. Validate aggregate size with checked arithmetic before accepting a transfer.
 
-Only `capture.json`, `Images/**` and `Checkpoints/**` are allowed. capture.json must be nonempty and at most 4 MiB. imageCount must agree with nonempty recognized image files directly under Images, matching current CaptureRepository semantics. Preserve filenames and subdirectories.
+Only `capture.json`, `Images/**` and `Checkpoints/**` are allowed. capture.json must be nonempty and at most 128 KiB. imageCount must agree with nonempty recognized image files directly under Images, matching current CaptureRepository semantics. Preserve filenames and subdirectories.
 
 Paths reject absolute/traversal/dot/empty components, backslashes, colons, percent escapes, control characters, trailing dots/spaces and non-NFC byte representations. Duplicate case/diacritic-folded paths and file/directory collisions are rejected conservatively for Apple filesystems. No URL decoding is performed. Disk services must additionally reject symlinks and special files; string validation alone is insufficient.
 
@@ -74,17 +74,17 @@ Manifest identity is SHA-256 of JSON encoded with sorted keys, unescaped slashes
 
 Local user decline returns offered to idle. Only the secure transport may authorize the peer; only the local receive decision accepts an offer; only the store may report finalized. Binary data before acceptance, concurrent files, duplicate verified indices, mismatched transfer IDs, bad file indices and unexpected control messages fail the session.
 
-FileIntegrityVerifier incrementally updates CryptoKit SHA-256 and actual length in bounded chunks. Truncation, corruption and extra bytes fail; completion can be consumed only once. This primitive does not write files. Future staging must write successfully before treating the corresponding protocol fileComplete as durable.
+FileIntegrityVerifier incrementally updates CryptoKit SHA-256 and actual length in bounded chunks. Truncation, corruption and extra bytes fail; completion can be consumed only once. This primitive does not write files. IncomingCaptureStore writes and verifies successfully before journaling a fileComplete as durable.
 
-Cancel and timeout/disconnect stop the current stream and preserve the set of fully verified file indices. A reconnect starts a new receiver protocol instance, repeats authentication, reoffers the exact manifest and asks for explicit acceptance. ResumeDescriptor binds candidate indices to transfer UUID, capture UUID and manifest digest. It is a journal model only: **persistent journaling and file rehashing are not implemented yet**. Disk existence or a journal entry alone must never cause a file to be skipped.
+Cancel and timeout/disconnect stop the current stream and preserve the set of fully verified file indices. A reconnect starts a new receiver protocol instance, repeats authentication, reoffers the exact manifest and asks for explicit acceptance. ResumeDescriptor binds candidate indices to transfer UUID, capture UUID and manifest digest. IncomingCaptureStore persists this journal identity and rehashes all candidates before acceptance. Disk existence or a journal entry alone must never cause a file to be skipped.
 
-## Required disk integration (next checkpoints)
+## Disk integration
 
 Resolve the ready source dataset by capture UUID through CaptureRepository. Validate ownership and files, incrementally hash/read them, and prevent or detect mutations while sending. Never use a network-provided source path. Keep the original iPhone capture intact.
 
-Receiver staging will use app-owned `Incoming/<transferUUID>.partial`. Validate the entire manifest and free space before creating files. Persist only verified completion state; rehash candidate completed files after restart. On changed manifests, safely restart incompatible staging. Partial files restart from byte zero in version 1.
+Receiver staging uses app-owned `Incoming/<transferUUID>.partial`. Validate the entire manifest and free space before creating files. Persist only verified completion state; rehash candidate completed files after restart. On changed manifests, safely restart incompatible staging. Partial files restart from byte zero in version 1.
 
-After every file verifies, extend LocalProjectStore to atomically create:
+After every file verifies, LocalProjectStore atomically creates:
 
 ```
 <captureUUID>.caliper3d/
@@ -98,21 +98,21 @@ After every file verifies, extend LocalProjectStore to atomically create:
   logs/
 ```
 
-Decision: the Mac project UUID equals the capture UUID for version 1, making duplicate imports explicit. Transfer UUID identifies a particular manifest attempt and persists across file-level retries. Never overwrite an existing project: an identical already-imported capture should return an explicit duplicate result; a changed dataset with that UUID requires a user-visible conflict. This finalization/duplicate behavior is specified, not implemented in checkpoint A. Set captureMethod objectCapture, real source/count/date and reconstructionState notStarted. Never start photogrammetry in this milestone.
+Decision: the Mac project UUID equals the capture UUID for version 1, making duplicate imports explicit. Transfer UUID also equals capture UUID, providing a stable retry key; the digest identifies exact manifest contents. Never overwrite an existing project: an identical already-imported capture should return an explicit duplicate result; a changed dataset with that UUID requires a user-visible conflict. This finalization/duplicate behavior is implemented and tested. Set captureMethod objectCapture, real source/count/date and reconstructionState notStarted. Never start photogrammetry in this milestone.
 
 ## SDK and privacy notes
 
 Inspected Xcode 26.6 iOS 26.5 Network.swiftinterface: NWBrowser Bonjour descriptors and result/state callbacks, NWListener service/newConnectionHandler, NWConnection receive(minimumIncompleteLength:maximumLength:completion:) and send(content:contentContext:isComplete:completion:), NWParameters(tls:tcp:). Security headers expose local identity, required peer authentication, minimum TLS version, verify blocks and peer-public-key metadata. SecIdentityCreate and TLS exporter signatures were also checked in Security headers. The implemented channel compiles against the installed SDK and has loopback socket tests.
 
-Before enabling networking, retain Mac App Sandbox and add only the client/server network capabilities needed by the implemented connection roles. Both apps must declare `_caliper3d._tcp` and a local-network usage explanation. iPhone already has these declarations; Mac additions remain pending with the listener. Handle denied privacy access without retry loops. Apple documents Bonjour declarations and local-network privacy, including macOS, in [TN3179](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy). No background modes or multicast entitlement were added in this checkpoint.
+Before enabling networking, retain Mac App Sandbox and add only the client/server network capabilities needed by the implemented connection roles. Both apps must declare `_caliper3d._tcp` and a local-network usage explanation. Both apps have these declarations; Mac has the network server entitlement for accepted TCP connections. Handle denied privacy access without retry loops. Apple documents Bonjour declarations and local-network privacy, including macOS, in [TN3179](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy). No background modes or multicast entitlement were added in this checkpoint.
 
 ## Verification boundary
 
-Most tests use in-memory frames and synthetic bytes. Two additional tests use real Network.framework TLS loopback connections without Bonjour advertisements. They cover fragmentation/coalescing, bounds, malformed/version errors, safe paths/collisions, manifest totals, incremental corruption/truncation, local authorization gating, ordering, cancel/interruption and resume identity. Loopback tests verify matching live TLS exporters/codes, a bounded binary payload and pinned mismatch rejection. Security identity tests verify certificate parsing/trust and private-key proof. They do not prove signed-app Keychain persistence, Bonjour, actual disk staging/resume, or physical transfer. The user-verified mouse scan remains outside Git and has not been sent to Mac by this implementation.
+Most tests use in-memory frames and synthetic bytes. Two additional tests use real Network.framework TLS loopback connections without Bonjour advertisements. They cover fragmentation/coalescing, bounds, malformed/version errors, safe paths/collisions, manifest totals, incremental corruption/truncation, local authorization gating, ordering, cancel/interruption and resume identity. Loopback tests verify matching live TLS exporters/codes, a bounded binary payload and pinned mismatch rejection. Security identity tests verify certificate parsing/trust and private-key proof. Additional store and coordinator tests now verify actual synthetic disk staging/resume and complete loopback transfer/finalization. Tests do not prove signed-app Keychain persistence, Bonjour or physical transfer. The user-verified mouse scan remains outside Git and has not been sent to Mac by this implementation.
 
 ## Production coordinator checkpoint (2026-09-13)
 
-ConnectionCoordinator now integrates discovery and pairing in both apps. Mac advertises the TLS listener; its normal policy accepts the Keychain fingerprint set. Pair iPhone explicitly opens a two-minute first-pair window. iPhone Pair explicitly requests first-pair TLS; Connect to a paired device supplies the selected stored pin. Hello adds optional requiresPairing (absent means false) so reconnect cannot silently downgrade to a fresh pairing. The actual TLS fingerprint must match hello before any pairing message. Trust is saved only after both confirmations, then UI becomes connected. Transfer frames remain rejected until the transfer engine is integrated.
+ConnectionCoordinator now integrates discovery and pairing in both apps. Mac advertises the TLS listener; its normal policy accepts the Keychain fingerprint set. Pair iPhone explicitly opens a two-minute first-pair window. iPhone Pair explicitly requests first-pair TLS; Connect to a paired device supplies the selected stored pin. Hello adds optional requiresPairing (absent means false) so reconnect cannot silently downgrade to a fresh pairing. The actual TLS fingerprint must match hello before any pairing message. Trust is saved only after both confirmations, then UI becomes connected. Transfer frames route to the engine only after authenticated trust.
 
 NWBrowser replaces each discovery snapshot, deduplicating service name/type/domain and updating endpoints; these identifiers remain untrusted display/routing data. Connection generation checks prevent cancelled work from restoring a session. Browser failure/waiting stops discovery with Settings guidance rather than retrying indefinitely. iPhone background stops networking; explicit reopening/retry is required. Only one connection/pairing UI is active, with three new attempts per minute and a three-second cooldown.
 
@@ -132,4 +132,14 @@ PreparedCaptureTransfer constructs the existing manifest from that capability. V
 
 IncomingCaptureStore owns Incoming/<transfer UUID>.partial, with transfer-manifest.json, journal.json, a dataset directory and a single receiving.tmp file. Journals bind the canonical manifest digest and verified indices. Every resume candidate is rehashed from disk; unfinished files restart at byte zero. A changed manifest invalidates the owned staging directory. Symlinks and special files block traversal/deletion. Free-space acceptance reserves remaining bytes plus one finalization copy and 100 MiB of metadata headroom.
 
-LocalProjectStore finalization preserves the dataset under capture/, writes sourceCaptureDigest into manifest.json, and atomically moves a hidden project staging directory into <capture UUID>.caliper3d. Existing UUIDs return duplicate only when the digest and rehashed stored files match; otherwise they conflict. The source iPhone dataset remains untouched. Path depth is limited to 64 components; capture.json is capped at 128 KiB. Production streaming orchestration remains the next integration step.
+LocalProjectStore finalization preserves the dataset under capture/, writes sourceCaptureDigest into manifest.json, and atomically moves a hidden project staging directory into <capture UUID>.caliper3d. Existing UUIDs return duplicate only when the digest and rehashed stored files match; otherwise they conflict. The source iPhone dataset remains untouched. Path depth is limited to 64 components; capture.json is capped at 128 KiB. Production streaming orchestration uses these stores through the authenticated coordinator.
+
+## Live transfer integration (2026-09-14)
+
+A connected iPhone prepares a UUID-issued source, offers its manifest and waits for explicit Mac acceptance. The Mac rehashes journal candidates/checks space, sends their indices, then receives one bounded binary stream per file. The sender skips only accepted indices and counts actual sent bytes; the Mac independently verifies lengths/hashes and journals durable files. No network input selects a source URL or a destination outside the configured Incoming root.
+
+After the final file, the Mac revalidates metadata/files, atomically finalizes the project, removes corresponding staging and sends transferComplete with project ID and manifest digest. Only that acknowledgement shows iPhone success. A lost acknowledgement can be retried; exact duplicates are safe. The Mac Library refreshes, and Devices provides Open Project. Reconstruction is not started.
+
+UI cancellation closes TLS instead of interleaving a cancel control with an in-flight binary write. Verified journal state remains; an unfinished file restarts at zero. iPhone backgrounding follows the same interruption policy. One active connection/transfer is supported; changing destination is explicit. Outstanding network operations time out after 180 seconds, so very slow preparation/finalization may require retry. No automatic background continuation or acceptance is promised.
+
+Coordinator loopback tests cover explicit acceptance/decline, a committed and reopened project, duplicate import, fully verified resume without file frames, and cancellation mid-file in a 64 MiB synthetic transfer followed by pinned reconnect and verified-file resume. Physical mouse transfer remains pending.

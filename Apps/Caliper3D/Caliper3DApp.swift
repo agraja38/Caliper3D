@@ -5,7 +5,7 @@ import Caliper3DTransfer
 @main
 struct Caliper3DApp: App {
     private let demo = ProcessInfo.processInfo.arguments.contains("--demo-mode")
-    @State private var connection = ConnectionCoordinator(role: .mac, name: Host.current().localizedName ?? "Caliper3D Mac", operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString, captureSupported: nil)
+    @State private var connection = ConnectionCoordinator(role: .mac, name: Host.current().localizedName ?? "Caliper3D Mac", operatingSystem: ProcessInfo.processInfo.operatingSystemVersionString, captureSupported: nil, incomingStore: IncomingCaptureStore(root: URL.applicationSupportDirectory.appendingPathComponent("Caliper3D/Incoming"), projects: LocalProjectStore(root: URL.applicationSupportDirectory.appendingPathComponent("Caliper3D/Projects"))))
     var body: some Scene {
         WindowGroup {
             WorkspaceView(demo: demo, connection: connection)

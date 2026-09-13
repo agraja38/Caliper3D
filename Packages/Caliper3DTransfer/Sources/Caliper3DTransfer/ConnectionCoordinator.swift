@@ -43,9 +43,18 @@ public struct PairingAttemptGate: Sendable {
 }
 
 /// App-lifetime UI-facing coordinator. TLSChannel owns byte I/O; protocol/security models own
-/// validation. All transfer frames remain rejected until a transfer engine is installed.
+/// validation. Transfer messages are routed only after mutual trust is established.
 @MainActor @Observable
 public final class ConnectionCoordinator {
+    public private(set) var transfer: LiveTransferStatus = .idle
+    public private(set) var offeredCapture: TransferManifest?
+    public private(set) var receivedProject: ScanProject?
+    public private(set) var activeCaptureID: UUID?
+    public private(set) var resumedFileCount = 0
+    private let incomingStore: IncomingCaptureStore?
+    private var receiver: ReceiveProtocol?
+    private var prepared: PreparedCaptureTransfer?
+    private var sendTask: Task<Void, Never>?
     public let role: PairingSession.Role
     public private(set) var discovery: DiscoveryStatus = .stopped
     public private(set) var state: ConnectionStatus = .offline
@@ -77,17 +86,17 @@ public final class ConnectionCoordinator {
     var listeningPort: NWEndpoint.Port? { listener?.port }
 
     public init(role: PairingSession.Role, name: String, operatingSystem: String, captureSupported: Bool?,
-                trustStore: any PeerTrustStore = KeychainTrustRepository(),
+                trustStore: any PeerTrustStore = KeychainTrustRepository(), incomingStore: IncomingCaptureStore? = nil,
                 identityLoader: @escaping @MainActor () async throws -> LocalTLSIdentity = {
                     try await KeychainIdentityRepository.load(from: KeychainIdentityRepository())
                 }) {
         self.role = role; self.name = name; self.operatingSystem = operatingSystem; self.captureSupported = captureSupported
-        self.trustStore = trustStore; self.identityLoader = identityLoader; loopbackOnly = false
+        self.trustStore = trustStore; self.identityLoader = identityLoader; self.incomingStore = incomingStore; loopbackOnly = false
     }
     // No Bonjour/Keychain access in coordinator integration tests.
-    init(role: PairingSession.Role, name: String, trustStore: any PeerTrustStore, identity: LocalTLSIdentity) {
+    init(role: PairingSession.Role, name: String, trustStore: any PeerTrustStore, identity: LocalTLSIdentity, incomingStore: IncomingCaptureStore? = nil) {
         self.role = role; self.name = name; operatingSystem = "Test"; captureSupported = nil
-        self.trustStore = trustStore; identityLoader = { identity }; loopbackOnly = true
+        self.trustStore = trustStore; identityLoader = { identity }; self.incomingStore = incomingStore; loopbackOnly = true
     }
     public func start() async {
         guard !started else { return }; started = true; discovery = .preparing
@@ -107,8 +116,11 @@ public final class ConnectionCoordinator {
     }
     public func disconnect() async {
         generation = UUID(); readTask?.cancel(); timeoutTask?.cancel(); pairing?.reject()
-        let previous = channel; channel = nil; binding = nil; hello = nil; pairing = nil; peerName = nil
-        state = .offline; await previous?.close()
+        sendTask?.cancel(); sendTask = nil; prepared = nil; receiver = nil; offeredCapture = nil
+        if transfer.isActive { transfer = .failed("Transfer interrupted. Reconnect to continue from verified files. The iPhone capture is unchanged.") }
+        let previous = channel; binding = nil; hello = nil; pairing = nil; peerName = nil
+        state = .offline; await previous?.close(); try? await incomingStore?.cancel()
+        channel = nil
     }
     public func background() async {
         await stop(); state = .failed("Reopen Caliper3D Capture to continue. Saved captures are unchanged.")
@@ -271,6 +283,7 @@ public final class ConnectionCoordinator {
     }
     private func process(_ frame: WireFrame) async throws {
         let token = generation
+        if case .connected = state { try await processTransfer(frame); return }
         guard case .control(let message) = frame, let binding else { throw WireError.invalidSequence }
         switch (message.type, message.payload) {
         case (.hello, .hello(let value)), (.helloResponse, .hello(let value)):
@@ -305,7 +318,7 @@ public final class ConnectionCoordinator {
         case (.pairingConfirmation, .confirmation(let value)):
             guard var session = pairing else { throw WireError.invalidSequence }
             try session.receiveConfirmation(value.transcriptDigest); pairing = session; try await approveIfReady()
-        default: throw WireError.invalidSequence // no transfer allowed through an unimplemented path
+        default: throw WireError.invalidSequence
         }
     }
     private func approveIfReady() async throws {
@@ -334,11 +347,180 @@ public final class ConnectionCoordinator {
     }
     private func fail(_ error: Error, token: UUID) async {
         guard generation == token else { return }
-        await disconnect(); state = .failed(Self.message(error))
+        await disconnect(); state = .failed(Self.message(error)); if activeCaptureID != nil { transfer = .failed(Self.message(error)) }
     }
     private static func message(_ error: Error) -> String {
+        if let storage = error as? IncomingCaptureError { return storage.localizedDescription }
+        if let project = error as? ReceivedProjectError { return project.localizedDescription }
+        if let capture = error as? CaptureSourceError { return capture.localizedDescription }
         if let pairing = error as? PairingError { return pairing.localizedDescription }
         if let wire = error as? WireError { return wire.localizedDescription }
         return "Connection interrupted or device identity could not be verified. Keep both apps on the same local network. If the device identity changed, forget it and explicitly pair again."
+    }
+}
+
+public enum LiveTransferStatus: Equatable, Sendable {
+    case idle, preparing, offered, checkingResume, transferring(bytes: Int64, total: Int64, file: String)
+    case verifying, completed, declined, cancelled, failed(String)
+    public var isActive: Bool {
+        switch self { case .preparing, .offered, .checkingResume, .transferring, .verifying: true; default: false }
+    }
+    public var message: String {
+        switch self {
+        case .idle: "Ready to send"
+        case .preparing: "Preparing files…"
+        case .offered: "Waiting for Mac acceptance…"
+        case .checkingResume: "Checking saved files and available storage…"
+        case .transferring: "Transferring capture…"
+        case .verifying: "Verifying and saving on Mac…"
+        case .completed: "Transferred successfully"
+        case .declined: "The Mac declined this capture. Your files are unchanged."
+        case .cancelled: "Transfer cancelled. Reconnect to continue from verified files."
+        case .failed(let message): message
+        }
+    }
+}
+
+extension ConnectionCoordinator {
+    public func sendCapture(_ captureID: UUID, repository: any CaptureRepository) async {
+        guard role == .phone, case .connected = state, !transfer.isActive else { return }
+        let token = generation
+        activeCaptureID = captureID; resumedFileCount = 0; transfer = .preparing
+        do {
+            let value = try await PreparedCaptureTransfer.prepare(captureID: captureID, repository: repository)
+            guard generation == token else { return }
+            prepared = value; transfer = .offered
+            try await send(.init(type: .transferOffer, payload: .manifest(value.manifest)))
+            AppLog.transfer.info("Capture offered to authenticated Mac")
+        } catch { await fail(error, token: token) }
+    }
+    public func acceptCapture() async {
+        guard role == .mac, case .connected = state, transfer == .offered,
+              let offer = offeredCapture, let incomingStore else { return }
+        let token = generation; transfer = .checkingResume
+        do {
+            let indices = try await incomingStore.prepare(offer)
+            guard token == generation else { return }
+            guard var machine = receiver else { throw WireError.invalidSequence }
+            let acceptance = try machine.accept(reverifiedIndices: indices); receiver = machine; resumedFileCount = indices.count
+            transfer = .transferring(bytes: machine.receivedBytes, total: offer.totalBytes, file: "")
+            try await send(.init(type: .transferAccepted, payload: .accepted(acceptance)))
+            try await finishIfReady(token: token)
+        } catch { await fail(error, token: token) }
+    }
+    public func declineCapture() async {
+        guard transfer == .offered, role == .mac, let offer = offeredCapture else { return }
+        let token = generation
+        do {
+            try receiver?.decline(); offeredCapture = nil; transfer = .declined
+            try await send(.init(type: .transferRejected, payload: .reason(.init(transferID: offer.transferID, code: "declined"))))
+        } catch { await fail(error, token: token) }
+    }
+    public func cancelTransfer() async {
+        guard transfer.isActive else { return }
+        // Closing the channel interrupts an in-flight binary write without interleaving control bytes.
+        await disconnect(); transfer = .cancelled
+    }
+    private func processTransfer(_ frame: WireFrame) async throws {
+        guard case .connected = state else { throw WireError.invalidSequence }
+        let token = generation
+        if role == .phone {
+            guard case .control(let message) = frame, let prepared else { throw WireError.invalidSequence }
+            let manifest = prepared.manifest
+            switch (message.type, message.payload) {
+            case (.transferAccepted, .accepted(let acceptance)):
+                guard transfer == .offered, acceptance.transferID == manifest.transferID,
+                      acceptance.manifestDigest == (try manifest.digest()),
+                      acceptance.verifiedFileIndices.allSatisfy(manifest.files.indices.contains) else { throw WireError.invalidSequence }
+                let skipped = Set(acceptance.verifiedFileIndices); resumedFileCount = skipped.count
+                let bytes = skipped.reduce(Int64(0)) { $0 + manifest.files[$1].bytes }
+                transfer = skipped.count == manifest.files.count ? .verifying : .transferring(bytes: bytes, total: manifest.totalBytes, file: "")
+                sendTask = Task { [weak self] in
+                    guard let self else { return }
+                    do { try await self.stream(prepared, skipping: skipped, initialBytes: bytes, token: token) }
+                    catch { await self.fail(error, token: token) }
+                }
+            case (.transferRejected, .reason(let reason)):
+                guard transfer == .offered, reason.transferID == manifest.transferID else { throw WireError.invalidSequence }
+                transfer = .declined; self.prepared = nil
+            case (.transferComplete, .completion(let completion)):
+                guard transfer == .verifying, completion.transferID == manifest.transferID,
+                      completion.projectID == manifest.captureID, completion.manifestDigest == (try manifest.digest()) else { throw WireError.invalidSequence }
+                transfer = .completed; self.prepared = nil
+                AppLog.transfer.info("Mac acknowledged committed capture")
+            default: throw WireError.invalidSequence
+            }
+            return
+        }
+        guard let incomingStore else { throw WireError.invalidSequence }
+        if case .control(let message) = frame, message.type == .transferOffer {
+            guard !transfer.isActive, case .manifest(let manifest) = message.payload,
+                  let hello, let binding else { throw WireError.invalidSequence }
+            var machine = ReceiveProtocol()
+            try machine.receive(.control(.init(type: .hello, payload: .hello(hello))))
+            try machine.authorizePeer(tlsFingerprint: binding.peerFingerprint)
+            try machine.receive(frame); receiver = machine
+            offeredCapture = manifest; activeCaptureID = manifest.captureID; receivedProject = nil; transfer = .offered
+            AppLog.transfer.info("Authenticated capture awaiting user acceptance")
+            return
+        }
+        guard var machine = receiver, let manifest = machine.manifest else { throw WireError.invalidSequence }
+        try machine.receive(frame) // Reject wrong ordering/indices/length before writing.
+        receiver = machine
+        switch frame {
+        case .binary(let data):
+            try await incomingStore.append(data)
+            guard generation == token else { return }
+            let file: String
+            if case .transferring(_, _, let current) = transfer { file = current } else { file = "" }
+            transfer = .transferring(bytes: machine.receivedBytes, total: manifest.totalBytes, file: file)
+        case .control(let message):
+            switch (message.type, message.payload) {
+            case (.fileBegin, .file(let reference)):
+                try await incomingStore.begin(reference)
+                guard generation == token else { return }
+                transfer = .transferring(bytes: machine.receivedBytes, total: manifest.totalBytes, file: manifest.files[reference.index].path)
+            case (.fileComplete, .file(let reference)):
+                try await incomingStore.complete(reference)
+                guard generation == token else { return }
+                try await finishIfReady(token: token)
+            case (.cancel, .reason): await cancelTransfer()
+            default: throw WireError.invalidSequence
+            }
+        }
+    }
+    private func stream(_ prepared: PreparedCaptureTransfer, skipping: Set<Int>, initialBytes: Int64, token: UUID) async throws {
+        let manifest = prepared.manifest
+        var sent = initialBytes
+        let remaining = manifest.files.indices.filter { !skipping.contains($0) }
+        guard token == generation else { throw WireError.cancelled }
+        for index in remaining {
+            try Task.checkCancellation(); guard token == generation else { throw WireError.cancelled }
+            let file = manifest.files[index], reference = FileReference(transferID: manifest.transferID, index: index)
+            try await send(.init(type: .fileBegin, payload: .file(reference)))
+            var offset: Int64 = 0
+            while offset < file.bytes {
+                try Task.checkCancellation()
+                let bytes = try await prepared.source.read(fileIndex: index, offset: offset, count: Int(min(Int64(TransferPolicy.chunkBytes), file.bytes - offset)))
+                guard !bytes.isEmpty, token == generation, let channel else { throw WireError.cancelled }
+                try await channel.send(WireFrame.binary(bytes).encoded())
+                guard token == generation else { throw WireError.cancelled }
+                offset += Int64(bytes.count); sent += Int64(bytes.count)
+                transfer = .transferring(bytes: sent, total: manifest.totalBytes, file: file.path)
+            }
+            // Set before the final write: the receiver may acknowledge before send resumes locally.
+            if index == remaining.last { transfer = .verifying }
+            try await send(.init(type: .fileComplete, payload: .file(reference)))
+        }
+    }
+    private func finishIfReady(token: UUID) async throws {
+        guard generation == token, transfer != .verifying, receiver?.state == .finalizing, let incomingStore else { return }
+        transfer = .verifying
+        let result = try await incomingStore.finish()
+        guard generation == token, var machine = receiver else { return }
+        let completion = try machine.finalized(projectID: result.project.manifest.id); receiver = machine
+        receivedProject = result.project; offeredCapture = nil
+        try await send(.init(type: .transferComplete, payload: .completion(completion)))
+        transfer = .completed
     }
 }
